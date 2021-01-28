@@ -3,16 +3,15 @@ library(dplyr)
 library(xts)
 library(shiny)
 
-reticulate::source_python("python/read_fit.py")
-reticulate::source_python("python/fit_meta.py")
+PYTHON_DEPENDENCIES = c('sweat')
 
 source("R/profile.R")
 source("R/utils.R")
 
 ui <- fluidPage(
-  mainPanel(p(""),
+  mainPanel(h1("Dual Power Comparison"),
             br(),
-            p(""),
+            p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
             fixedRow(column(width = 6,
                             fileInput("f1", "Fit 1", multiple = FALSE, accept = ".fit"),
                             textInput(inputId = "f1_label", label = "File 1 Label",
@@ -23,15 +22,25 @@ ui <- fluidPage(
                             textInput(inputId = "f2_label", label = "File 2 Label",
                                       width = "200px",
                                       placeholder = "e.g. Trainer"))),
-            actionButton(inputId = "generate", label = "Run Report", width = "200px"),
+            fixedRow(column(width = 6,
+                            actionButton(inputId = "generate", label = "Run Report", width = "200px")),
+                     column(width = 6,
+                            shiny::checkboxInput("demo", "Demo: Check to use demo files."))),
+            br(),
+            h3("Power Source Metadata"),
             fixedRow(column(width = 6,
                             htmlOutput("f1_meta")),
                      column(width = 6,
                             htmlOutput("f2_meta"))),
+            br(),
+            shiny::h3("Critical Power Comparison"),
             fixedRow(column(width = 3,
+                            br(),
+                            br(),
                             tableOutput("powerCurve_table")),
                      column(width = 9,
                             plotOutput("powerCurve_plot"))),
+            br(),
             dygraphOutput("power_dygraph"),
             dygraphOutput("hr_dygraph"),
             dygraphOutput("cad_dygraph"),
@@ -39,35 +48,70 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
+
+  # ------------------ App virtualenv setup (Do not edit) ------------------- #
+
+  virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
+  python_path = Sys.getenv('PYTHON_PATH')
+
+  reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+  reticulate::virtualenv_install(virtualenv_dir, packages = c(PYTHON_DEPENDENCIES),
+                                 ignore_installed=FALSE)
+  reticulate::use_virtualenv(virtualenv_dir, required = T)
+
+  reticulate::source_python("python/read_fit.py")
+  reticulate::source_python("python/fit_meta.py")
+
   observeEvent(input$generate, {
 
-    if(is.null(input$f1)) {
-
-      showNotification("Upload fit file first.")
-      return()
-
+    if(input$demo) {
+      in_fit_1 <- "fit/fit1.fit"
+      in_fit_1_label <- "Demo Source 1"
+      in_fit_2 <- "fit/fit2.fit"
+      in_fit_2_label <- "Demo Source 2"
     } else {
 
-      if(input$f1_label == "") {
-        showNotification("Provide label for first file.")
+      if(is.null(input$f1)) {
+
+        showNotification("Upload fit file first.")
         return()
+
+      } else {
+
+        if(input$f1_label == "") {
+          showNotification("Provide label for first file.")
+          return()
+        }
+
+        in_fit_1 <- input$f1$datapath
+
+        in_fit_1_label <- input$f1_label
+
       }
 
-      fit_1 <- read_fit_file(input$f1$datapath)
+      if(!is.null(input$f2)) {
 
-      output$f1_meta <- renderUI(HTML(pretty_fm(get_fit_meta(input$f1$datapath))))
+        if(is.null(input$f2_label)) {
+          showNotification("Provide label for secton file.")
+          return()
+        }
+
+        in_fit_2 <- input$f2$datapath
+
+        in_fit_2_label <- input$f2_label
+      }
+
     }
 
-    if(!is.null(input$f2)) {
+    fit_1 <- read_fit_file(in_fit_1)
 
-      if(is.null(input$f2_label)) {
-        showNotification("Provide label for secton file.")
-        return()
-      }
+    output$f1_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_1))))
 
-      fit_2 <- read_fit_file(input$f2$datapath)
+    if(exists("in_fit_2")) {
 
-      output$f2_meta <- renderUI(HTML(pretty_fm(get_fit_meta(input$f2$datapath))))
+      fit_2 <- read_fit_file(in_fit_2)
+
+      output$f2_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_2))))
 
     } else {
 
@@ -88,32 +132,32 @@ server <- function(input, output, session) {
     }
 
     output$powerCurve_table <- function() {
-      get_powercurve_table(input, max_1, max_2)
+      get_powercurve_table(max_1, max_2, in_fit_1_label, in_fit_2_label)
     }
 
-    output$powerCurve_plot <- renderPlot(powercurve_plot(input, max_1, max_2))
+    output$powerCurve_plot <- renderPlot(powercurve_plot(max_1, max_2, in_fit_1_label, in_fit_2_label))
 
-    dat <- get_hygraph_data(input, fit_1, fit_2)
+    dat <- get_hygraph_data(fit_1, fit_2, in_fit_1_label, in_fit_2_label)
 
     output$power_dygraph <- renderDygraph({
-      dygraph(dat$power)
+      get_dygraph(dat$power)
     })
 
     if("elevation" %in% names(dat)) {
       output$ele_dygraph <- renderDygraph({
-        dygraph(dat$elevation)
+        get_dygraph(dat$elevation)
       })
     }
 
     if("heartrate" %in% names(dat)) {
       output$hr_dygraph <- renderDygraph({
-        dygraph(dat$heartrate)
+        get_dygraph(dat$heartrate)
       })
     }
 
     if("cadence" %in% names(dat)) {
       output$cad_dygraph <- renderDygraph({
-        dygraph(dat$cadence)
+        get_dygraph(dat$cadence)
       })
     }
   })
