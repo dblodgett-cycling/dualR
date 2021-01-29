@@ -8,6 +8,8 @@ PYTHON_DEPENDENCIES = c('sweat')
 source("R/profile.R")
 source("R/utils.R")
 
+app_env <- reactiveValues(rmd_params = list())
+
 ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),
             br(),
@@ -41,6 +43,7 @@ ui <- fluidPage(
                      column(width = 9,
                             plotOutput("powerCurve_plot"))),
             br(),
+            downloadButton("run_report", label = "Download Report"),
             dygraphOutput("power_dygraph"),
             dygraphOutput("hr_dygraph"),
             dygraphOutput("cad_dygraph"),
@@ -105,13 +108,15 @@ server <- function(input, output, session) {
 
     fit_1 <- read_fit_file(in_fit_1)
 
-    output$f1_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_1))))
+    f1_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_1))))
+    output$f1_meta <- f1_meta
 
     if(exists("in_fit_2")) {
 
       fit_2 <- read_fit_file(in_fit_2)
 
-      output$f2_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_2))))
+      f2_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_2))))
+      output$f2_meta <- f2_meta
 
     } else {
 
@@ -139,6 +144,14 @@ server <- function(input, output, session) {
 
     dat <- get_hygraph_data(fit_1, fit_2, in_fit_1_label, in_fit_2_label)
 
+    app_env$rmd_params$l1 <- in_fit_1_label
+    app_env$rmd_params$l2 <- in_fit_2_label
+    app_env$rmd_params$m1 <- max_1
+    app_env$rmd_params$m2 <- max_2
+    app_env$rmd_params$f1 <- f1_meta
+    app_env$rmd_params$f2 <- f2_meta
+    app_env$rmd_params$d <- dat
+
     output$power_dygraph <- renderDygraph({
       get_dygraph(dat$power)
     })
@@ -161,6 +174,25 @@ server <- function(input, output, session) {
       })
     }
   })
+
+  output$run_report <- downloadHandler(
+    filename = "dualReport.pdf",
+    content = function(file) {
+
+      params <- list(f1_meta = app_env$rmd_params$f2,
+                     f2_meta= app_env$rmd_params$f2,
+                     in_fit_1_label = app_env$rmd_params$l1,
+                     in_fit_2_label = app_env$rmd_params$l2,
+                     max_1 = app_env$rmd_params$m1,
+                     max_2 = app_env$rmd_params$m2,
+                     dat = app_env$rmd_params$d)
+
+      rmarkdown::render("compare.Rmd", output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
 
 }
 

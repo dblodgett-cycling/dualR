@@ -1,0 +1,54 @@
+---
+title: "Dual Power Comparison"
+output: pdf_document
+params:
+  f1_meta: NA
+  f2_meta: NA
+  in_fit_1_label: NA
+  in_fit_2_label: NA
+  max_1: NA
+  max_2: NA
+  dat: NA
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width=10,
+  fig.height=4)
+
+library(dygraphs)
+library(dplyr)
+library(xts)
+library(shiny)
+
+source("R/profile.R")
+source("R/utils.R")
+```
+
+```{r max}
+params$f1_meta
+
+params$f2_meta
+
+get_powercurve_table(params$max_1, params$max_2, 
+                     params$in_fit_1_label, params$in_fit_2_label)
+```
+```{r plot}
+renderPlot(powercurve_plot(params$max_1, params$max_2, 
+                           params$in_fit_1_label, params$in_fit_2_label))
+```
+
+```{r plots, fig.width=10, fig.height=2.5}
+dat <- params$dat
+
+get_dygraph(dat$power)
+
+get_dygraph(dat$elevation)
+
+get_dygraph(dat$heartrate)
+
+get_dygraph(dat$cadence)
+```
