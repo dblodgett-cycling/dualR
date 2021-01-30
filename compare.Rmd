@@ -1,6 +1,6 @@
 ---
 title: "Dual Power Comparison"
-output: pdf_document
+output: html_document
 params:
   f1_meta: NA
   f2_meta: NA
@@ -9,7 +9,6 @@ params:
   max_1: NA
   max_2: NA
   dat: NA
-always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +16,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.width=10,
-  fig.height=4)
+  fig.height=4, 
+  echo = FALSE, 
+  include = TRUE)
 
 library(dygraphs)
 library(dplyr)
@@ -28,17 +29,30 @@ source("R/profile.R")
 source("R/utils.R")
 ```
 
-```{r max}
-params$f1_meta
+```{r max, results='asis'}
+cat(paste0("<h2>", params$in_fit_1_label, "</h2><br/>"))
 
-params$f2_meta
+cat(
+  params$f1_meta  
+)
 
+cat("<br/><br/>")
+
+cat(paste0("<h2>", params$in_fit_2_label, "</h2><br/>"))
+
+cat(
+  params$f2_meta
+)
+```
+
+```{r max_table}
 get_powercurve_table(params$max_1, params$max_2, 
-                     params$in_fit_1_label, params$in_fit_2_label)
+                     params$in_fit_1_label, params$in_fit_2_label, "pipe")
+
 ```
 ```{r plot}
-renderPlot(powercurve_plot(params$max_1, params$max_2, 
-                           params$in_fit_1_label, params$in_fit_2_label))
+powercurve_plot(params$max_1, params$max_2, 
+                params$in_fit_1_label, params$in_fit_2_label)
 ```
 
 ```{r plots, fig.width=10, fig.height=2.5}

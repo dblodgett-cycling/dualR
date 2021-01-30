@@ -3,7 +3,7 @@ FROM rocker/shiny-verse:4.0.1
 
 # install R packages required
 # (change it dependeing on the packages you need)
-RUN install2.r dygraphs xts reticulate RcppRoll
+RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown
 
 # copy the app to the image
 COPY fit_proc.Rproj /srv/shiny-server/
@@ -12,6 +12,7 @@ COPY app.R /srv/shiny-server/
 COPY R /srv/shiny-server/R
 COPY python /srv/shiny-server/python
 COPY fit /srv/shiny-server/fit
+COPY compare.Rmd /srv/shiny-server/
 
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3-pip

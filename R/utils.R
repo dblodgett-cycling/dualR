@@ -72,7 +72,7 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
 
       plot_range <- seq(min(max_1, max_2), max(max_1, max_2), length.out = length(max_1))
 
-      legend_text <- c(l1, l2, "Δ < 2%", "2% < Δ < 4%", "4% < Δ < 8%", "Δ > 8%")
+      legend_text <- c(l1, l2, "diff < 2%", "2% < diff < 4%", "4% < diff < 8%", "diff > 8%")
       legend_pch <- c(max_1_pch, max_2_pch, 15, 15, 15, 15)
 
       perc_diff <- get_perc_diff(max_1, max_2)
@@ -106,19 +106,19 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
   }
 }
 
-get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
+get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL, format = "html") {
   if(!is.null(max_2)) {
     data.frame(p = names(max_1),
                p1 = as.numeric(max_1),
                p2 = as.numeric(max_2),
                d = as.numeric(get_perc_diff(max_1, max_2) * 100)) %>%
-      knitr::kable("html", digits = 0, align = "c",
+      knitr::kable(format, digits = 0, align = "c",
                    col.names = c("Period", l1, l2, "% Diff"),
                    padding = 2)
   } else {
     data.frame(p = names(max_1),
                p1 = as.numeric(max_1)) %>%
-      knitr::kable("html", digits = 0, align = "c",
+      knitr::kable(format, digits = 0, align = "c",
                    col.names = c("Period", l1),
                    padding = 2)
   }

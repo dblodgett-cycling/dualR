@@ -108,15 +108,16 @@ server <- function(input, output, session) {
 
     fit_1 <- read_fit_file(in_fit_1)
 
-    f1_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_1))))
-    output$f1_meta <- f1_meta
+    f1_meta <- get_fit_meta(in_fit_1)
+
+    output$f1_meta <- renderUI(HTML(pretty_fm(f1_meta)))
 
     if(exists("in_fit_2")) {
 
       fit_2 <- read_fit_file(in_fit_2)
 
-      f2_meta <- renderUI(HTML(pretty_fm(get_fit_meta(in_fit_2))))
-      output$f2_meta <- f2_meta
+      f2_meta <- get_fit_meta(in_fit_2)
+      output$f2_meta <- renderUI(HTML(pretty_fm(f2_meta)))
 
     } else {
 
@@ -148,8 +149,8 @@ server <- function(input, output, session) {
     app_env$rmd_params$l2 <- in_fit_2_label
     app_env$rmd_params$m1 <- max_1
     app_env$rmd_params$m2 <- max_2
-    app_env$rmd_params$f1 <- f1_meta
-    app_env$rmd_params$f2 <- f2_meta
+    app_env$rmd_params$f1 <- pretty_fm(f1_meta)
+    app_env$rmd_params$f2 <- pretty_fm(f2_meta)
     app_env$rmd_params$d <- dat
 
     output$power_dygraph <- renderDygraph({
@@ -176,7 +177,7 @@ server <- function(input, output, session) {
   })
 
   output$run_report <- downloadHandler(
-    filename = "dualReport.pdf",
+    filename = "dualReport.html",
     content = function(file) {
 
       params <- list(f1_meta = app_env$rmd_params$f2,
