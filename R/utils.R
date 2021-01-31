@@ -127,7 +127,7 @@ get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL, form
                p1 = as.numeric(max_1),
                p2 = as.numeric(max_2),
                d = as.numeric(get_perc_diff(max_1, max_2) * 100)) %>%
-      knitr::kable(format, digits = 0, align = "c",
+      knitr::kable(format, digits = c(0, 0, 0, 1), align = "c",
                    col.names = c("Period", l1, l2, "% Diff"),
                    padding = 2)
   } else {
@@ -145,5 +145,5 @@ get_dygraph <- function(dat) {
 }
 
 get_perc_diff <- function(max_1, max_2) {
-  round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 2)
+  round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 4)
 }

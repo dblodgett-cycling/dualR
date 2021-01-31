@@ -16,6 +16,8 @@ ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),
             br(),
             p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
+            p("dualR is being provided as a service to the community. It is free and open source."),
+            p(HTML('See <a href="https://github.com/dblodgett-cycling/dualR" target="_blank">the github repository</a> for more information or to as questions.')),
             fixedRow(column(width = 6,
                             fileInput("f1", 
                                       label = p("Fit 1", bsButton("q1", label = "", icon = icon("question"), style = "info", size = "extra-small")), 
