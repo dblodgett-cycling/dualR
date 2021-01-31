@@ -6,7 +6,7 @@ FROM rocker/shiny-verse:4.0.1
 RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown
 
 # copy the app to the image
-COPY fit_proc.Rproj /srv/shiny-server/
+COPY dualR.Rproj /srv/shiny-server/
 COPY .Rprofile /srv/shiny-server/
 COPY app.R /srv/shiny-server/
 COPY R /srv/shiny-server/R
