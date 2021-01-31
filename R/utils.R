@@ -6,6 +6,19 @@ pretty_fm <- function(fm, l) {
           l, fm$manufacturer, fm$serial_number, fm$time_created)
 }
 
+check_fit <- function(f) {
+  
+  if(grepl("zip", f)) {
+    out <- unzip(f, list = TRUE)
+    out <- out$Name[out$Length == max(out$Length)]
+    unzip(f, exdir = dirname(f), files = out)
+    f <- file.path(dirname(f), out)
+  }
+  
+  f
+  
+}
+
 get_dygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
 
 
@@ -66,6 +79,7 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
 
       legend_text <- c(l1)
       legend_pch <- max_1_pch
+      legend_color <- "black"
 
       point_col <- rep("blue", length(max_1))
 

@@ -30,15 +30,11 @@ source("R/utils.R")
 ```
 
 ```{r max, results='asis'}
-cat(paste0("<h2>", params$in_fit_1_label, "</h2><br/>"))
-
 cat(
   params$f1_meta  
 )
 
 cat("<br/><br/>")
-
-cat(paste0("<h2>", params$in_fit_2_label, "</h2><br/>"))
 
 cat(
   params$f2_meta

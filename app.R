@@ -2,6 +2,7 @@ library(dygraphs)
 library(dplyr)
 library(xts)
 library(shiny)
+library(shinyBS)
 
 PYTHON_DEPENDENCIES = c('sweat')
 
@@ -16,12 +17,20 @@ ui <- fluidPage(
             br(),
             p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
             fixedRow(column(width = 6,
-                            fileInput("f1", "Fit 1", multiple = FALSE, accept = ".fit"),
+                            fileInput("f1", 
+                                      label = p("Fit 1", bsButton("q1", label = "", icon = icon("question"), style = "info", size = "extra-small")), 
+                                      multiple = FALSE, 
+                                      accept = c(".fit", ".zip")),
+                            bsPopover(id = "q1", title = "Upload Help",
+                                      content = "If upload fails, try zipping your fit file and upload again.",
+                                      placement = "right", 
+                                      trigger = "focus", 
+                                      options = list(container = "body")),
                             textInput(inputId = "f1_label", label = "File 1 Label",
                                       width = "200px",
                                       placeholder = "e.g. Power Meter")),
                      column(width = 6,
-                            fileInput("f2", "Fit 2", multiple = FALSE, accept = ".fit"),
+                            fileInput("f2", "Fit 2", multiple = FALSE, accept = c(".fit", ".zip")),
                             textInput(inputId = "f2_label", label = "File 2 Label",
                                       width = "200px",
                                       placeholder = "e.g. Trainer"))),
@@ -90,7 +99,7 @@ server <- function(input, output, session) {
           return()
         }
         
-        in_fit_1 <- input$f1$datapath
+        in_fit_1 <- check_fit(input$f1$datapath)
         
         in_fit_1_label <- input$f1_label
         
@@ -103,7 +112,7 @@ server <- function(input, output, session) {
           return()
         }
         
-        in_fit_2 <- input$f2$datapath
+        in_fit_2 <- check_fit(input$f2$datapath)
         
         in_fit_2_label <- input$f2_label
       }
@@ -111,6 +120,7 @@ server <- function(input, output, session) {
     }
     
     tryCatch({
+      
       fit_1 <- read_fit_file(in_fit_1)
     },
     error = function(e) {
@@ -124,7 +134,7 @@ server <- function(input, output, session) {
     if(exists("in_fit_2")) {
       
       tryCatch({
-        fit_2 <- read_fit_file(in_fit_2)
+        fit_2 <- read_fit_file(check_fit(in_fit_2))
       },
       error = function(e) {
         showNotification(paste("Error reading fit file 2: \n", e))
@@ -137,6 +147,8 @@ server <- function(input, output, session) {
     } else {
       
       fit_2 <- NULL
+      f2_meta <- NULL
+      in_fit_2_label <- NULL
       
     }
     
@@ -167,13 +179,14 @@ server <- function(input, output, session) {
     })
     
     app_env$rmd_params$l1 <- in_fit_1_label
-    app_env$rmd_params$l2 <- in_fit_2_label
     app_env$rmd_params$m1 <- max_1
-    app_env$rmd_params$m2 <- max_2
     app_env$rmd_params$f1 <- f1_meta
-    app_env$rmd_params$f2 <- f2_meta
     app_env$rmd_params$d <- dat
     app_env$ready <- TRUE
+
+    app_env$rmd_params$l2 <- in_fit_2_label
+    app_env$rmd_params$m2 <- max_2
+    app_env$rmd_params$f2 <- f2_meta
     
     output$power_dygraph <- renderDygraph({
       get_dygraph(dat$power)
