@@ -1,12 +1,12 @@
-pretty_fm <- function(fm) {
+pretty_fm <- function(fm, l) {
 
   fm[sapply(fm, is.null)] <- ""
 
-  sprintf("Manufacturer: %s <br/> Serial Number: %s <br/> Created: %s",
-          fm$manufacturer, fm$serial_number, fm$time_created)
+  sprintf("<h2>%s</h2> <br/> Manufacturer: %s <br/> Serial Number: %s <br/> Created: %s",
+          l, fm$manufacturer, fm$serial_number, fm$time_created)
 }
 
-get_hygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
+get_dygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
 
 
   dat <- list(
@@ -36,16 +36,17 @@ get_hygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
 }
 
 add_data <- function(fit, field, field_name, fit_label, dat) {
-  if(field %in% names(fit)) {
-    out <- setNames(xts(fit[[field]], order.by = fit$datetime),
-                    paste(field_name, fit_label))
-
-    if(field %in% names(dat)) {
-      dat[[field]] <- cbind(dat[[field]], out)
-    } else {
-      dat[[field]] <- out
-    }
-  }
+  try({
+    if(field %in% names(fit)) {
+      out <- setNames(xts(fit[[field]], order.by = fit$datetime),
+                      paste(field_name, fit_label))
+      
+      if(field %in% names(dat)) {
+        dat[[field]] <- cbind(dat[[field]], out)
+      } else {
+        dat[[field]] <- out
+      }
+    }})
 
   dat
 }
