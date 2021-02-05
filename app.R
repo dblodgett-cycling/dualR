@@ -224,7 +224,7 @@ server <- function(input, output, session) {
     filename = "dualReport.html",
     content = function(file) {
       
-      params <- list(f1_meta = app_env$rmd_params$f2,
+      params <- list(f1_meta = app_env$rmd_params$f1,
                      f2_meta= app_env$rmd_params$f2,
                      in_fit_1_label = app_env$rmd_params$l1,
                      in_fit_2_label = app_env$rmd_params$l2,
