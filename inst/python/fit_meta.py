@@ -1,6 +1,6 @@
 from fitparse import FitFile
 
-def get_fit_meta(f):
+def get_fit_meta_py(f):
   fitfile = FitFile(f)
 
   out = {}

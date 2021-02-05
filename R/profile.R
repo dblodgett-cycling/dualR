@@ -1,3 +1,12 @@
+#' get max average powers from fit power time series
+#' @description Creates a "critical power" curve from a timeseries of power data.
+#' @param fit data.frame containing a "datetime" and "power" column
+#' @param wthn second data.frame that overlaps the first.
+#' @export
+#' @examples
+#' get_maxes(read_fit_file(system.file("fit/fit1.fit", package = "dualR")))
+#' get_maxes(read_fit_file(system.file("fit/fit1.fit", package = "dualR")),
+#'           read_fit_file(system.file("fit/fit2.fit", package = "dualR")))
 get_maxes <- function(fit, wthn = NULL) {
 
   if(!is.null(wthn)) {
@@ -10,7 +19,7 @@ get_maxes <- function(fit, wthn = NULL) {
 
   fit <- to_1hz(fit, "power")
 
-  l <- tail(fit$datetime, n = 1) - fit$datetime[1]
+  l <- utils::tail(fit$datetime, n = 1) - fit$datetime[1]
 
   w <- c(1, 5, 10, 15, 30,
          60, 60 * 2, 60 * 3, 60 * 5, 60 * 10, 60 * 15, 60 * 20, 60 * 30, 60 * 45,
@@ -42,7 +51,7 @@ xPower <- function(fit_1hz) {
 }
 
 to_1hz <- function(fit, col = "power") {
-  v <- data.frame(datetime = seq(fit$datetime[1], tail(fit$datetime, n = 1), by = "1 sec"))
-  v[[col]] <- approx(fit$datetime, fit[[col]], v$datetime, "linear")$y
+  v <- data.frame(datetime = seq(fit$datetime[1], utils::tail(fit$datetime, n = 1), by = "1 sec"))
+  v[[col]] <- stats::approx(fit$datetime, fit[[col]], v$datetime, "linear")$y
   v
 }

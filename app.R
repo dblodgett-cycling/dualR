@@ -77,15 +77,15 @@ server <- function(input, output, session) {
                                  ignore_installed=FALSE)
   reticulate::use_virtualenv(virtualenv_dir, required = T)
   
-  reticulate::source_python("python/read_fit.py")
-  reticulate::source_python("python/fit_meta.py")
+  reticulate::source_python("inst/python/read_fit.py")
+  reticulate::source_python("inst/python/fit_meta.py")
   
   observeEvent(input$generate, {
     
     if(input$demo) {
-      in_fit_1 <- "fit/fit1.fit"
+      in_fit_1 <- "inst/fit/fit1.fit"
       in_fit_1_label <- "Demo Source 1"
-      in_fit_2 <- "fit/fit2.fit"
+      in_fit_2 <- "inst/fit/fit2.fit"
       in_fit_2_label <- "Demo Source 2"
     } else {
       

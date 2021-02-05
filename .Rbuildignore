@@ -1,1 +1,8 @@
 ^LICENSE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+.github
+Dockerfile
+app.R
+compare.Rmd
+rsconnect
