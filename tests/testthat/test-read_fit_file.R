@@ -21,3 +21,9 @@ test_that("get meta", {
   
   expect_s3_class(meta$time_created, "POSIXct")
 })
+
+test_that("get devices", {
+  meta <- get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
+  
+  expect_equal(nrow(meta), 5)  
+})
