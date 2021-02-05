@@ -46,19 +46,21 @@ get_powercurve_table(params$max_1, params$max_2,
                      params$in_fit_1_label, params$in_fit_2_label, "pipe")
 
 ```
+NOTE: Critical powers are calculated on the overlapping portion of inputs only.  
 ```{r plot}
 powercurve_plot(params$max_1, params$max_2, 
                 params$in_fit_1_label, params$in_fit_2_label)
 ```
 
+Double click for zoom full.
 ```{r plots, fig.width=10, fig.height=2.5}
 dat <- params$dat
 
 get_dygraph(dat$power)
 
-get_dygraph(dat$elevation)
-
 get_dygraph(dat$heartrate)
+
+get_dygraph(dat$elevation)
 
 get_dygraph(dat$cadence)
 ```

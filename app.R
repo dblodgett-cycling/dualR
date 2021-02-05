@@ -17,7 +17,7 @@ ui <- fluidPage(
             br(),
             p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
             p("dualR is being provided as a service to the community. It is free and open source."),
-            p(HTML('See <a href="https://github.com/dblodgett-cycling/dualR" target="_blank">the github repository</a> for more information or to as questions.')),
+            p(HTML('See <a href="https://github.com/dblodgett-cycling/dualR" target="_blank">the github repository</a> for more information or to ask questions.')),
             fixedRow(column(width = 6,
                             fileInput("f1", 
                                       label = p("Fit 1", bsButton("q1", label = "", icon = icon("question"), style = "info", size = "extra-small")), 
@@ -56,11 +56,13 @@ ui <- fluidPage(
                                              tableOutput("powerCurve_table")),
                                       column(width = 9,
                                              plotOutput("powerCurve_plot"))),
+                             p("NOTE: Critical powers are calculated on the overlapping portion of inputs only."),
                              br(),
+                             p("Double click for zoom full."),
                              dygraphOutput("power_dygraph"),
                              dygraphOutput("hr_dygraph"),
-                             dygraphOutput("cad_dygraph"),
-                             dygraphOutput("ele_dygraph"))
+                             dygraphOutput("ele_dygraph"),
+                             dygraphOutput("cad_dygraph"))
   )
   
 )
