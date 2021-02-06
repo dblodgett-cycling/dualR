@@ -4,6 +4,8 @@ output: html_document
 params:
   f1_meta: NA
   f2_meta: NA
+  f1_devices: NA
+  f2_devices: NA
   in_fit_1_label: NA
   in_fit_2_label: NA
   max_1: NA
@@ -34,11 +36,15 @@ cat(
   params$f1_meta  
 )
 
+get_devices_table(params$f1_devices)
+
 cat("<br/><br/>")
 
 cat(
   params$f2_meta
 )
+
+get_devices_table(params$f2_devices)
 ```
 
 ```{r max_table}

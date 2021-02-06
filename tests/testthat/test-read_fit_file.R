@@ -25,5 +25,9 @@ test_that("get meta", {
 test_that("get devices", {
   meta <- get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
   
-  expect_equal(nrow(meta), 5)  
+  expect_equal(nrow(meta), 5)
+  
+  meta <- get_device_meta("inst/fit/rgt/rgt_h3.fit")
+  
+  expect_true(nrow(meta) == 0)
 })

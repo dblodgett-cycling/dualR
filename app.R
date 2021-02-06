@@ -3,6 +3,7 @@ library(dplyr)
 library(xts)
 library(shiny)
 library(shinyBS)
+library(dualR)
 
 PYTHON_DEPENDENCIES = c('sweat')
 
@@ -44,10 +45,11 @@ ui <- fluidPage(
             conditionalPanel(condition = "output.show",
                              downloadButton("run_report", label = "Download Report"),
                              h3("Power Source Metadata"),
-                             fixedRow(column(width = 6,
-                                             htmlOutput("f1_meta")),
-                                      column(width = 6,
-                                             htmlOutput("f2_meta"))),
+                             htmlOutput("f1_meta"),
+                             DTOutput("fit_1_devices"),
+                             br(),
+                             htmlOutput("f2_meta"),
+                             DTOutput("fit_2_devices"),
                              br(),
                              shiny::h3("Critical Power Comparison"),
                              fixedRow(column(width = 3,
@@ -135,6 +137,9 @@ server <- function(input, output, session) {
     f1_meta <- pretty_fm(get_fit_meta(in_fit_1), in_fit_1_label)
     output$f1_meta <- renderUI(HTML(f1_meta))
     
+    f1_devices <- get_device_meta(in_fit_1)
+    output$fit_1_devices <- get_devices_table(f1_devices)
+    
     if(exists("in_fit_2")) {
       
       tryCatch({
@@ -148,11 +153,15 @@ server <- function(input, output, session) {
       f2_meta <- pretty_fm(get_fit_meta(in_fit_2), in_fit_2_label)
       output$f2_meta <- renderUI(HTML(f2_meta))
       
+      f2_devices <- get_device_meta(in_fit_2)
+      output$fit_2_devices <- get_devices_table(f2_devices)
+      
     } else {
       
       fit_2 <- NULL
       f2_meta <- NULL
       in_fit_2_label <- NULL
+      f2_devices <- NULL
       
     }
     
@@ -185,12 +194,14 @@ server <- function(input, output, session) {
     app_env$rmd_params$l1 <- in_fit_1_label
     app_env$rmd_params$m1 <- max_1
     app_env$rmd_params$f1 <- f1_meta
+    app_env$rmd_params$d1 <- f1_devices
     app_env$rmd_params$d <- dat
     app_env$ready <- TRUE
 
     app_env$rmd_params$l2 <- in_fit_2_label
     app_env$rmd_params$m2 <- max_2
     app_env$rmd_params$f2 <- f2_meta
+    app_env$rmd_params$d2 <- f2_devices
     
     output$power_dygraph <- renderDygraph({
       get_dygraph(dat$power)
@@ -227,7 +238,9 @@ server <- function(input, output, session) {
     content = function(file) {
       
       params <- list(f1_meta = app_env$rmd_params$f1,
-                     f2_meta= app_env$rmd_params$f2,
+                     f2_meta = app_env$rmd_params$f2,
+                     f1_devices = app_env$rmd_params$d1,
+                     f2_devices = app_env$rmd_params$d2,
                      in_fit_1_label = app_env$rmd_params$l1,
                      in_fit_2_label = app_env$rmd_params$l2,
                      max_1 = app_env$rmd_params$m1,

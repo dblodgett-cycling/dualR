@@ -71,18 +71,26 @@ clean_device_info <- function(out) {
   
   out <- out[, names(out) %in% good_names]
   
-  out[["id_temp"]] <- apply(select(out, -timestamp), 1, 
-                            function(x) do.call(paste, as.list(x)))
-  
-  unq <- dplyr::distinct(select(out, -timestamp))
-  
-  unq[["id"]] <- seq_len(nrow(unq))
-  
-  dplyr::select(unq, id_temp, id) %>%
-    dplyr::right_join(out, by = "id_temp") %>%
-    dplyr::select(-id_temp) %>%
-    dplyr::group_by(id)%>%
-    dplyr::filter(timestamp == min(timestamp)) %>%
-    dplyr::ungroup()
+  if(nrow(out) > 0) {
+    
+    out[["id_temp"]] <- apply(select(out, -timestamp), 1, 
+                              function(x) do.call(paste, as.list(x)))
+    
+    unq <- dplyr::distinct(select(out, -timestamp))
+    
+    unq[["id"]] <- seq_len(nrow(unq))
+    
+    dplyr::select(unq, id_temp, id) %>%
+      dplyr::right_join(out, by = "id_temp") %>%
+      dplyr::select(-id_temp) %>%
+      dplyr::group_by(id)%>%
+      dplyr::filter(timestamp == min(timestamp)) %>%
+      dplyr::ungroup()
+    
+  } else {
+    
+    out
+    
+  }
   
 }

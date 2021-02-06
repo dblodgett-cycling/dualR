@@ -2,7 +2,7 @@ pretty_fm <- function(fm, l) {
 
   fm[sapply(fm, is.null)] <- ""
 
-  sprintf("<h2>%s</h2> <br/> Manufacturer: %s <br/> Serial Number: %s <br/> Created: %s",
+  sprintf("<h4>%s</h4> <br/> Manufacturer: %s <br/> Serial Number: %s <br/> Created: %s",
           l, fm$manufacturer, fm$serial_number, fm$time_created)
 }
 
@@ -137,6 +137,18 @@ get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL, form
                    col.names = c("Period", l1),
                    padding = 2)
   }
+}
+
+get_devices_table <- function(devices) {
+  if(nrow(devices) == 0) devices <- data.frame(manufacturer = "undeclared", 
+                                               product = "undeclared", 
+                                               serial_number = "undeclared")
+  
+  names(devices) <- gsub("_", " ", names(devices))
+  
+  DT::renderDataTable(devices, options = list(dom = 't', ordering = FALSE, 
+                                              paging = FALSE, searching = FALSE),
+                      rownames= FALSE)
 }
 
 get_dygraph <- function(dat) {
