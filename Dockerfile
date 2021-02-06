@@ -5,14 +5,15 @@ FROM rocker/shiny-verse:4.0.1
 # (change it dependeing on the packages you need)
 RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown
 
+RUN installGithub.r dblodgett-cycling/dualR
+
 # copy the app to the image
 COPY dualR.Rproj /srv/shiny-server/
 COPY .Rprofile /srv/shiny-server/
 COPY app.R /srv/shiny-server/
-COPY R /srv/shiny-server/R
-COPY python /srv/shiny-server/python
-COPY fit /srv/shiny-server/fit
+COPY utils.R /srv/shiny-server/
 COPY compare.Rmd /srv/shiny-server/
+COPY inst /srv/shiny-server/fit
 
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3-pip
