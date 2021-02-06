@@ -26,6 +26,7 @@ library(dygraphs)
 library(dplyr)
 library(xts)
 library(shiny)
+library(dualR)
 
 source("R/profile.R")
 source("R/utils.R")
@@ -49,7 +50,7 @@ get_devices_table(params$f2_devices)
 
 ```{r max_table}
 get_powercurve_table(params$max_1, params$max_2, 
-                     params$in_fit_1_label, params$in_fit_2_label, "pipe")
+                     params$in_fit_1_label, params$in_fit_2_label)
 
 ```
 NOTE: Critical powers are calculated on the overlapping portion of inputs only.  

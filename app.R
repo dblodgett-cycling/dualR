@@ -46,12 +46,14 @@ ui <- fluidPage(
                              downloadButton("run_report", label = "Download Report"),
                              h3("Power Source Metadata"),
                              htmlOutput("f1_meta"),
-                             DTOutput("fit_1_devices"),
-                             br(),
+                             h4("Connected Device Metadata"),
+                             tableOutput("fit_1_devices"),
+                             br(), br(),
                              htmlOutput("f2_meta"),
-                             DTOutput("fit_2_devices"),
+                             htmlOutput("fit_2_device_heading"),
+                             tableOutput("fit_2_devices"),
                              br(),
-                             shiny::h3("Critical Power Comparison"),
+                             h3("Critical Power Comparison"),
                              fixedRow(column(width = 3,
                                              br(),
                                              br(),
@@ -138,7 +140,7 @@ server <- function(input, output, session) {
     output$f1_meta <- renderUI(HTML(f1_meta))
     
     f1_devices <- get_device_meta(in_fit_1)
-    output$fit_1_devices <- get_devices_table(f1_devices)
+    output$fit_1_devices <- function() get_devices_table(f1_devices)
     
     if(exists("in_fit_2")) {
       
@@ -154,7 +156,8 @@ server <- function(input, output, session) {
       output$f2_meta <- renderUI(HTML(f2_meta))
       
       f2_devices <- get_device_meta(in_fit_2)
-      output$fit_2_devices <- get_devices_table(f2_devices)
+      output$fit_2_devices <- function() get_devices_table(f2_devices)
+      output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
       
     } else {
       

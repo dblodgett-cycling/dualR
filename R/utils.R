@@ -121,21 +121,23 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
   }
 }
 
-get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL, format = "html") {
+get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
   if(!is.null(max_2)) {
     data.frame(p = names(max_1),
                p1 = as.numeric(max_1),
                p2 = as.numeric(max_2),
                d = as.numeric(get_perc_diff(max_1, max_2) * 100)) %>%
-      knitr::kable(format, digits = c(0, 0, 0, 1), align = "c",
+      knitr::kable(format = "html", digits = c(0, 0, 0, 1), align = "c",
                    col.names = c("Period", l1, l2, "% Diff"),
-                   padding = 2)
+                   padding = 2) %>%
+      kableExtra::kable_styling()
   } else {
     data.frame(p = names(max_1),
                p1 = as.numeric(max_1)) %>%
-      knitr::kable(format, digits = 0, align = "c",
+      knitr::kable(format = "html", digits = 0, align = "c",
                    col.names = c("Period", l1),
-                   padding = 2)
+                   padding = 2)  %>%
+      kableExtra::kable_styling()
   }
 }
 
@@ -146,9 +148,8 @@ get_devices_table <- function(devices) {
   
   names(devices) <- gsub("_", " ", names(devices))
   
-  DT::renderDataTable(devices, options = list(dom = 't', ordering = FALSE, 
-                                              paging = FALSE, searching = FALSE),
-                      rownames= FALSE)
+  knitr::kable(devices, padding = 2, format = "html") %>%
+    kableExtra::kable_styling()
 }
 
 get_dygraph <- function(dat) {
