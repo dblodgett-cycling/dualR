@@ -54,6 +54,8 @@ get_device_meta <- function(f) {
       out[[i]][r$name] = list(as.character(r$value))
     }
     
+    out[[i]][lengths(out[[i]]) == 0] <- ""
+    
     out[[i]] <- data.frame(out[[i]])
     
     i <- i + 1
@@ -67,7 +69,7 @@ get_device_meta <- function(f) {
 clean_device_info <- function(out) {
   good_names <- c("manufacturer", "product", "product_name", "serial_number", 
                   "timestamp", "ant_device_number", "antplus_device_type", 
-                  "source_type", "software_version")
+                  "device_type", "source_type", "software_version")
   
   out <- out[, names(out) %in% good_names]
   
