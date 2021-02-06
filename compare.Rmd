@@ -28,8 +28,7 @@ library(xts)
 library(shiny)
 library(dualR)
 
-source("R/profile.R")
-source("R/utils.R")
+source("utils.R")
 ```
 
 ```{r max, results='asis'}

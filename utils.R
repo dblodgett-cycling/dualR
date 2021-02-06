@@ -121,8 +121,26 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
   }
 }
 
+make_full <- function(x, nms) {
+  setNames(c(x, rep(NA, length(nms) - length(x))), nms)
+}
+
 get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
+  
   if(!is.null(max_2)) {
+    maxes <- list(max_1, max_2)
+    
+    lens <- lengths(maxes)
+    
+    if(!all(lens == max(lens))) {
+      
+      nms <- names(maxes[[which(lens == max(lens))]])
+      
+      max_1 <- make_full(max_1, nms)
+      max_2 <- make_full(max_2, nms)
+      
+    }
+    
     data.frame(p = names(max_1),
                p1 = as.numeric(max_1),
                p2 = as.numeric(max_2),
@@ -158,5 +176,5 @@ get_dygraph <- function(dat) {
 }
 
 get_perc_diff <- function(max_1, max_2) {
-  round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 4)
+  suppressWarnings(round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 4))
 }
