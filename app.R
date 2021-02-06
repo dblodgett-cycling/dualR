@@ -7,8 +7,7 @@ library(dualR)
 
 PYTHON_DEPENDENCIES = c('sweat')
 
-source("R/profile.R")
-source("R/utils.R")
+source("utils.R")
 
 app_env <- reactiveValues(rmd_params = list(),
                           ready = FALSE)
@@ -78,10 +77,23 @@ server <- function(input, output, session) {
   virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
   python_path = Sys.getenv('PYTHON_PATH')
   
-  reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-  reticulate::virtualenv_install(virtualenv_dir, packages = c(PYTHON_DEPENDENCIES),
-                                 ignore_installed=FALSE)
-  reticulate::use_virtualenv(virtualenv_dir, required = T)
+  ready <- FALSE
+  
+  try({
+    reticulate::use_virtualenv(virtualenv_dir, required = TRUE)
+    sys <- reticulate::import("sys")
+    ready <- all(PYTHON_DEPENDENCIES %in% names(sys$modules))
+  }, silent = TRUE)
+  
+  if(!ready) {
+    
+    reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+    reticulate::virtualenv_install(virtualenv_dir, packages = c(PYTHON_DEPENDENCIES),
+                                   ignore_installed=FALSE)
+
+    reticulate::use_virtualenv(virtualenv_dir, required = TRUE)
+    
+  }
   
   reticulate::source_python("inst/python/read_fit.py")
   reticulate::source_python("inst/python/fit_meta.py")

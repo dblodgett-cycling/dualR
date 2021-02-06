@@ -27,7 +27,7 @@ test_that("get devices", {
   
   expect_equal(nrow(meta), 5)
   
-  meta <- get_device_meta("inst/fit/rgt/rgt_h3.fit")
+  meta <- get_device_meta(system.file("fit/rgt/rgt_h3.fit", package = "dualR"))
   
   expect_true(nrow(meta) == 0)
 })

@@ -75,10 +75,10 @@ clean_device_info <- function(out) {
   
   if(nrow(out) > 0) {
     
-    out[["id_temp"]] <- apply(select(out, -timestamp), 1, 
+    out[["id_temp"]] <- apply(dplyr::select(out, -timestamp), 1, 
                               function(x) do.call(paste, as.list(x)))
     
-    unq <- dplyr::distinct(select(out, -timestamp))
+    unq <- dplyr::distinct(dplyr::select(out, -timestamp))
     
     unq[["id"]] <- seq_len(nrow(unq))
     
