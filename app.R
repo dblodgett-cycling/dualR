@@ -20,7 +20,10 @@ ui <- fluidPage(
             p(HTML('See <a href="https://github.com/dblodgett-cycling/dualR" target="_blank">the github repository</a> for more information or to ask questions.')),
             fixedRow(column(width = 6,
                             fileInput("f1", 
-                                      label = p("Fit 1", bsButton("q1", label = "", icon = icon("question"), style = "info", size = "extra-small")), 
+                                      label = p("Fit 1", bsButton("q1", label = "", 
+                                                                  icon = icon("info"), 
+                                                                  style = "info", 
+                                                                  size = "extra-small")), 
                                       multiple = FALSE, 
                                       accept = c(".fit", ".zip")),
                             bsPopover(id = "q1", title = "Upload Help",
@@ -30,13 +33,27 @@ ui <- fluidPage(
                                       options = list(container = "body")),
                             textInput(inputId = "f1_label", label = "File 1 Label",
                                       width = "200px",
-                                      placeholder = "e.g. Power Meter")),
+                                      placeholder = "e.g. Power Meter"),
+                            textInput("f1_offset", p("Fit 1 Offset", 
+                                                     bsButton("q2", label = "", 
+                                                              icon = icon("info"), 
+                                                              style = "info", 
+                                                              size = "extra-small")), 
+                                      placeholder = "9999-99-99 99:99:99"),
+                            bsPopover(id = "q2", title = "Offset Help",
+                                      content = "Enter desired start time of this timeseries.",
+                                      placement = "right", 
+                                      trigger = "focus", 
+                                      options = list(container = "body"))
+                            ),
                      column(width = 6,
                             fileInput("f2", "Fit 2", multiple = FALSE, accept = c(".fit", ".zip")),
                             textInput(inputId = "f2_label", label = "File 2 Label",
                                       width = "200px",
-                                      placeholder = "e.g. Trainer"))),
+                                      placeholder = "e.g. Trainer"),
+                            textInput("f2_offset", "Fit 2 Offset", placeholder = "9999-99-99 99:99:99"))),
             fixedRow(column(width = 6,
+                            checkboxInput("trim", label = "Trim timeseries to overlapping parts.", value = FALSE),
                             actionButton(inputId = "generate", label = "Run Report", width = "200px")),
                      column(width = 6,
                             shiny::checkboxInput("demo", "Demo: Check to use demo files."))),
@@ -103,19 +120,23 @@ server <- function(input, output, session) {
     if(input$demo) {
       in_fit_1 <- "inst/fit/fit1.fit"
       in_fit_1_label <- "Demo Source 1"
+      f1_offset <- get_offset(input$f1_offset)
+      if(is.null(f1_offset)) return()
       in_fit_2 <- "inst/fit/fit2.fit"
       in_fit_2_label <- "Demo Source 2"
+      f2_offset <- get_offset(input$f2_offset)
+      if(is.null(f2_offset)) return()
     } else {
       
       if(is.null(input$f1)) {
         
-        showNotification("Upload fit file first.")
+        showNotification("Upload fit file first.", type = "error")
         return()
         
       } else {
         
         if(input$f1_label == "") {
-          showNotification("Provide label for first file.")
+          showNotification("Provide label for first file.", type = "error")
           return()
         }
         
@@ -123,18 +144,26 @@ server <- function(input, output, session) {
         
         in_fit_1_label <- input$f1_label
         
+        f1_offset <- get_offset(input$f1_offset)
+        
+        if(is.null(f1_offset)) return()
+        
       }
       
       if(!is.null(input$f2)) {
         
         if(is.null(input$f2_label)) {
-          showNotification("Provide label for secton file.")
+          showNotification("Provide label for secton file.", type = "error")
           return()
         }
         
         in_fit_2 <- check_fit(input$f2$datapath)
         
         in_fit_2_label <- input$f2_label
+        
+        f2_offset <- get_offset(input$f2_offset)
+        
+        if(is.null(f2_offset)) return()
       }
       
     }
@@ -142,9 +171,17 @@ server <- function(input, output, session) {
     tryCatch({
       
       fit_1 <- read_fit_file(in_fit_1)
+      
+      if(inherits(f1_offset, "POSIXct")) {
+        fit_1$datetime <- as.POSIXct(fit_1$datetime)
+        
+        d_diff <- f1_offset - fit_1$datetime[1]
+        
+        fit_1$datetime <- fit_1$datetime + d_diff
+      }
     },
     error = function(e) {
-      showNotification(paste("Error reading fit file 1: \n", e))
+      showNotification(paste("Error reading fit file 1: \n", e), type = "error", duration = NULL)
       return()
     })
     
@@ -158,9 +195,22 @@ server <- function(input, output, session) {
       
       tryCatch({
         fit_2 <- read_fit_file(check_fit(in_fit_2))
+        
+        if(inherits(f2_offset, "POSIXct")) {
+          fit_2$datetime <- as.POSIXct(fit_2$datetime)
+          
+          d_diff <- f2_offset - fit_2$datetime[1]
+          
+          fit_2$datetime <- fit_2$datetime + d_diff
+        }
+        
+        if(input$trim) {
+          fit_1 <- get_overlapping(fit_1, fit_2)
+          fit_2 <- get_overlapping(fit_2, fit_1)
+        }
       },
       error = function(e) {
-        showNotification(paste("Error reading fit file 2: \n", e))
+        showNotification(paste("Error reading fit file 2: \n", e), type = "error", duration = NULL)
         return()
       })
       
@@ -202,7 +252,8 @@ server <- function(input, output, session) {
       get_dygraph_data(fit_1, fit_2, in_fit_1_label, in_fit_2_label)
     },
     error = function(e) {
-      showNotification(paste("Error getting timeseries data for plot: \n", e))
+      showNotification(paste("Error getting timeseries data for plot: \n", e), 
+                       type = "error", duration = NULL)
       NULL
     })
     

@@ -178,3 +178,21 @@ get_dygraph <- function(dat) {
 get_perc_diff <- function(max_1, max_2) {
   suppressWarnings(round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 4))
 }
+
+get_offset <- function(offset) {
+  if(offset != "") {
+    
+    offset <- try(as.POSIXct(offset))
+    
+    if(!(inherits(offset, "POSIXct"))) {
+      showNotification("Invalid datetime format. 'yyyy-mm-dd HH:MM:SS'", 
+                       type = "error", duration = NULL)
+      return(NULL)
+    }
+    
+    return(offset)
+    
+  }
+  
+  return("")
+}

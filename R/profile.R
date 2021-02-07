@@ -10,11 +10,7 @@
 get_maxes <- function(fit, wthn = NULL) {
 
   if(!is.null(wthn)) {
-
-    fit <- fit[fit$datetime > wthn$datetime[1] &
-                 fit$datetime < tail(wthn$datetime, n = 1), ]
-
-    if(nrow(fit) == 0) stop("provided within filter records don't overlap.")
+    fit <- get_overlapping(fit, wthn)
   }
 
   fit <- to_1hz(fit, "power")
@@ -54,4 +50,17 @@ to_1hz <- function(fit, col = "power") {
   v <- data.frame(datetime = seq(fit$datetime[1], utils::tail(fit$datetime, n = 1), by = "1 sec"))
   v[[col]] <- stats::approx(fit$datetime, fit[[col]], v$datetime, "linear")$y
   v
+}
+
+#' get overlapping portion of timeseries
+#' @inheritParams get_maxes
+#' @export
+get_overlapping <- function(fit, wthn) {
+  
+  fit <- fit[fit$datetime > wthn$datetime[1] &
+               fit$datetime < tail(wthn$datetime, n = 1), ]
+  
+  if(nrow(fit) == 0) stop("provided within filter records don't overlap.")
+ 
+  fit
 }
