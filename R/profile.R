@@ -60,6 +60,8 @@ get_overlapping <- function(fit, wthn) {
   fit <- fit[fit$datetime > wthn$datetime[1] &
                fit$datetime < tail(wthn$datetime, n = 1), ]
   
+  fit <- dplyr::filter(fit, !is.na(fit$power))
+  
   if(nrow(fit) == 0) stop("provided within filter records don't overlap.")
  
   fit
