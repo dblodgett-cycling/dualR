@@ -57,10 +57,11 @@ to_1hz <- function(fit, col = "power") {
 #' @export
 get_overlapping <- function(fit, wthn) {
   
-  fit <- fit[fit$datetime > wthn$datetime[1] &
-               fit$datetime < tail(wthn$datetime, n = 1), ]
+  fit <- fit[!is.na(fit$power), ]
+  wthn <- wthn[!is.na(wthn$power), ]
   
-  fit <- dplyr::filter(fit, !is.na(fit$power))
+  fit <- fit[fit$datetime > wthn$datetime[1] &
+               fit$datetime < utils::tail(wthn$datetime, n = 1), ]
   
   if(nrow(fit) == 0) stop("provided within filter records don't overlap.")
  

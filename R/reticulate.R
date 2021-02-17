@@ -1,3 +1,5 @@
+.data <- NULL
+
 #' Read Fit File
 #' @param f path to fit file
 #' @export
@@ -66,6 +68,7 @@ get_device_meta <- function(f) {
   
 }
 
+#' @importFrom dplyr `%>%`
 clean_device_info <- function(out) {
   good_names <- c("manufacturer", "product", "product_name", "serial_number", 
                   "timestamp", "ant_device_number", "antplus_device_type", 
@@ -75,18 +78,18 @@ clean_device_info <- function(out) {
   
   if(nrow(out) > 0) {
     
-    out[["id_temp"]] <- apply(dplyr::select(out, -timestamp), 1, 
+    out[["id_temp"]] <- apply(dplyr::select(out, -.data$timestamp), 1, 
                               function(x) do.call(paste, as.list(x)))
     
-    unq <- dplyr::distinct(dplyr::select(out, -timestamp))
+    unq <- dplyr::distinct(dplyr::select(out, -.data$timestamp))
     
     unq[["id"]] <- seq_len(nrow(unq))
     
-    dplyr::select(unq, id_temp, id) %>%
+    dplyr::select(unq, .data$id_temp, .data$id) %>%
       dplyr::right_join(out, by = "id_temp") %>%
-      dplyr::select(-id_temp) %>%
-      dplyr::group_by(id)%>%
-      dplyr::filter(timestamp == min(timestamp)) %>%
+      dplyr::select(-.data$id_temp) %>%
+      dplyr::group_by(.data$id)%>%
+      dplyr::filter(.data$timestamp == min(.data$timestamp)) %>%
       dplyr::ungroup()
     
   } else {
