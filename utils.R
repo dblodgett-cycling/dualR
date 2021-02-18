@@ -21,9 +21,12 @@ check_fit <- function(f) {
 
 get_dygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
 
+  p <- xts(fit_1$power, order.by = fit_1$datetime)
+  
+  tzone(p) <- "GMT"
 
   dat <- list(
-    power = setNames(xts(fit_1$power, order.by = fit_1$datetime),
+    power = setNames(p,
                       l1))
 
   dat <- add_data(fit_1, "elevation", "Elevation", l1, dat)
@@ -33,8 +36,12 @@ get_dygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
   dat <- add_data(fit_1, "cadence", "Cadence", l1, dat)
 
   if(!is.null(fit_2)) {
+    p <- xts(fit_2$power, order.by = fit_2$datetime)
+    
+    tzone(p) <- "GMT"
+    
     dat$power <- cbind(dat$power,
-                       setNames(xts(fit_2$power, order.by = fit_2$datetime),
+                       setNames(p,
                                 l2))
 
     dat <- add_data(fit_2, "elevation", "Elevation", l2, dat)
@@ -53,6 +60,8 @@ add_data <- function(fit, field, field_name, fit_label, dat) {
     if(field %in% names(fit)) {
       out <- setNames(xts(fit[[field]], order.by = fit$datetime),
                       paste(field_name, fit_label))
+      
+      tzone(out) <- "GMT"
       
       if(field %in% names(dat)) {
         dat[[field]] <- cbind(dat[[field]], out)
@@ -172,7 +181,8 @@ get_devices_table <- function(devices) {
 
 get_dygraph <- function(dat) {
   dygraph(dat, group = "one") %>%
-    dyRangeSelector()
+    dyRangeSelector() %>%
+    dyOptions(useDataTimezone = TRUE)
 }
 
 get_perc_diff <- function(max_1, max_2) {
@@ -182,7 +192,7 @@ get_perc_diff <- function(max_1, max_2) {
 get_offset <- function(offset) {
   if(offset != "") {
     
-    offset <- try(as.POSIXct(offset))
+    offset <- try(as.POSIXct(offset, tz = "GMT"))
     
     if(!(inherits(offset, "POSIXct"))) {
       showNotification("Invalid datetime format. 'yyyy-mm-dd HH:MM:SS'", 

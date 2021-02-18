@@ -173,7 +173,7 @@ server <- function(input, output, session) {
       fit_1 <- read_fit_file(in_fit_1)
       
       if(inherits(f1_offset, "POSIXct")) {
-        fit_1$datetime <- as.POSIXct(fit_1$datetime)
+        fit_1$datetime <- as.POSIXct(fit_1$datetime, tz = "GMT")
         
         d_diff <- f1_offset - fit_1$datetime[1]
         
@@ -197,7 +197,7 @@ server <- function(input, output, session) {
         fit_2 <- read_fit_file(check_fit(in_fit_2))
         
         if(inherits(f2_offset, "POSIXct")) {
-          fit_2$datetime <- as.POSIXct(fit_2$datetime)
+          fit_2$datetime <- as.POSIXct(fit_2$datetime, tz = "GMT")
           
           d_diff <- f2_offset - fit_2$datetime[1]
           
