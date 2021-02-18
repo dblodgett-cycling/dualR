@@ -181,8 +181,9 @@ get_devices_table <- function(devices) {
 
 get_dygraph <- function(dat) {
   dygraph(dat, group = "one") %>%
-    dyRangeSelector() %>%
-    dyOptions(useDataTimezone = TRUE)
+    dyRangeSelector(height = 20) %>%
+    dyOptions(useDataTimezone = TRUE) %>%
+    dyLegend(show = "always", hideOnMouseOut = FALSE)
 }
 
 get_perc_diff <- function(max_1, max_2) {

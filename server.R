@@ -5,7 +5,7 @@ server <- function(input, output, session) {
   virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
   python_path = Sys.getenv('PYTHON_PATH')
   
-  ready <- FALSE
+  app_env$ready <- FALSE
   
   try({
     reticulate::use_virtualenv(virtualenv_dir, required = TRUE)
@@ -27,6 +27,8 @@ server <- function(input, output, session) {
   reticulate::source_python("inst/python/fit_meta.py")
   
   observeEvent(input$generate, {
+    
+    error_condition <- FALSE
     
     if(input$demo) {
       in_fit_1 <- "inst/fit/fit1.fit"
@@ -141,18 +143,25 @@ server <- function(input, output, session) {
       
     }
     
-    if(!is.null(fit_2)) {
-      
-      max_1 <- get_maxes(fit_1, fit_2)
-      max_2 <- get_maxes(fit_2, fit_1)
-      
-    } else {
-      
-      max_1 <- get_maxes(fit_1)
-      max_2 <- NULL
-      
-    }
+    tryCatch({
+      if(!is.null(fit_2)) {
+        
+        max_1 <- get_maxes(fit_1, fit_2)
+        max_2 <- get_maxes(fit_2, fit_1)
+        
+      } else {
+        
+        max_1 <- get_maxes(fit_1)
+        max_2 <- NULL
+        
+      }
+    }, error = function(e) {
+      showNotification(paste("Error calculating critical powers. Original error was:", e), 
+                       type = "error", duration = NULL)
+      return()
+    })
     
+    if(exists("max_1")) {
     output$powerCurve_table <- function() {
       get_powercurve_table(max_1, max_2, in_fit_1_label, in_fit_2_label)
     }
@@ -180,6 +189,10 @@ server <- function(input, output, session) {
     app_env$rmd_params$f2 <- f2_meta
     app_env$rmd_params$d2 <- f2_devices
     
+    output$summary_dygraph <- renderDygraph({
+      get_dygraph(dat$power)
+    })
+    
     output$power_dygraph <- renderDygraph({
       get_dygraph(dat$power)
     })
@@ -201,7 +214,7 @@ server <- function(input, output, session) {
         get_dygraph(dat$cadence)
       })
     }
-    
+    }
   })
   
   output$show <- reactive({
