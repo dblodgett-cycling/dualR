@@ -33,12 +33,10 @@ server <- function(input, output, session) {
     if(input$demo) {
       in_fit_1 <- "inst/fit/fit1.fit"
       in_fit_1_label <- "Demo Source 1"
-      f1_offset <- get_offset(input$f1_offset)
-      if(is.null(f1_offset)) return()
+      f1_offset <- input$f1_offset
       in_fit_2 <- "inst/fit/fit2.fit"
       in_fit_2_label <- "Demo Source 2"
-      f2_offset <- get_offset(input$f2_offset)
-      if(is.null(f2_offset)) return()
+      f2_offset <- input$f2_offset
     } else {
       
       if(is.null(input$f1)) {
@@ -57,9 +55,7 @@ server <- function(input, output, session) {
         
         in_fit_1_label <- input$f1_label
         
-        f1_offset <- get_offset(input$f1_offset)
-        
-        if(is.null(f1_offset)) return()
+        f1_offset <- input$f1_offset
         
       }
       
@@ -74,9 +70,7 @@ server <- function(input, output, session) {
         
         in_fit_2_label <- input$f2_label
         
-        f2_offset <- get_offset(input$f2_offset)
-        
-        if(is.null(f2_offset)) return()
+        f2_offset <- input$f2_offset
       }
       
     }
@@ -85,12 +79,10 @@ server <- function(input, output, session) {
       
       fit_1 <- read_fit_file(in_fit_1)
       
-      if(inherits(f1_offset, "POSIXct")) {
+      if(abs(f1_offset) > 0) {
         fit_1$datetime <- as.POSIXct(fit_1$datetime, tz = "GMT")
         
-        d_diff <- f1_offset - fit_1$datetime[1]
-        
-        fit_1$datetime <- fit_1$datetime + d_diff
+        fit_1$datetime <- fit_1$datetime + f1_offset
       }
     },
     error = function(e) {
@@ -109,12 +101,10 @@ server <- function(input, output, session) {
       tryCatch({
         fit_2 <- read_fit_file(check_fit(in_fit_2))
         
-        if(inherits(f2_offset, "POSIXct")) {
+        if(abs(f2_offset) > 0) {
           fit_2$datetime <- as.POSIXct(fit_2$datetime, tz = "GMT")
           
-          d_diff <- f2_offset - fit_2$datetime[1]
-          
-          fit_2$datetime <- fit_2$datetime + d_diff
+          fit_2$datetime <- fit_2$datetime + f2_offset
         }
         
         if(input$trim) {
