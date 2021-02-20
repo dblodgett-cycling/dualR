@@ -17,3 +17,7 @@ The vision for this work was originally curiosity and a need to generate dual po
 Thanks for considering contributing to the project. I'd be excited for this project to grow through community contriubtion. Please get in touch via the issues with ideas.
 
 ## License: CC BY 4.0 [![License: CC BY 4.0](https://licensebuttons.net/l/by/4.0/80x15.png)](https://creativecommons.org/licenses/by/4.0/)
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/dblodgett-cycling/dualR/workflows/R-CMD-check/badge.svg)](https://github.com/dblodgett-cycling/dualR/actions)
+<!-- badges: end -->

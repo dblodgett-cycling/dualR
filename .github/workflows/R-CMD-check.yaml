@@ -1,0 +1,73 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: R-CMD-check
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@v1
+      
+      - name: Query dependencies
+        run: |
+          install.packages('remotes', repos = "http://cran.us.r-project.org")
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+        
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+
+      - name: Install system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          while read -r cmd
+          do
+            eval sudo $cmd
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+
+      - name: Install Python dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade
+          sudo apt-get install python3-virtualenv
+          sudo apt-get install python3-venv
+          sudo apt-get install -y python3-pip
+          sudo pip3 install --upgrade pip
+          sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+          sudo apt-get install -y python3-venv
+          pip install sweat==0.17.0
+        shell: /bin/bash {0}
+        
+      - name: Install dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+          virtualenv_dir <- "venv_python"
+          reticulate::virtualenv_create(envname = virtualenv_dir, python = "python3")
+          reticulate::virtualenv_install(virtualenv_dir, packages = c("sweat"))
+        shell: Rscript {0}
+
+      - name: Check
+        run: |
+          reticulate::use_virtualenv("venv_python", required = TRUE)
+          options(crayon.enabled = TRUE)
+          rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
+        shell: Rscript {0}
