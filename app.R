@@ -22,12 +22,22 @@ ui <- fluidPage(
                                       accept = c(".fit", ".zip")),
                             textInput(inputId = "f1_label", label = "File 1 Label",
                                       width = "200px",
-                                      placeholder = "e.g. Power Meter")),
+                                      placeholder = "e.g. Race Recording"),
+                            checkboxInput("extraf1", "Add extra copy of fit 1", value = FALSE),
+                            conditionalPanel(condition = "input.extraf1",
+                                             fileInput("f1_2", 
+                                                       label = "Fit 1-2", 
+                                                       multiple = FALSE, 
+                                                       accept = c(".fit", ".zip")),
+                                             textInput(inputId = "f1_2_label", label = "File 1-2 Label",
+                                                       width = "200px",
+                                                       placeholder = "e.g. Secondary Trianer Recording"))),
                      column(width = 5,
                             fileInput("f2", "Fit 2", multiple = FALSE, accept = c(".fit", ".zip")),
                             textInput(inputId = "f2_label", label = "File 2 Label",
                                       width = "200px",
-                                      placeholder = "e.g. Trainer")),
+                                      placeholder = "e.g. Power Meter Verification")
+                            ),
                      column(width = 2, br(),
                             p("", 
                               bsButton("q1", label = "", 
@@ -42,13 +52,16 @@ ui <- fluidPage(
             checkboxInput("demo", "Demo: Check to use demo files."),
             conditionalPanel(condition = "output.show",
                              checkboxInput("trim", label = "Trim timeseries to overlapping parts.", value = FALSE),
-                             checkboxInput("offset", label = "Show timeseries offset controls."),),
+                             checkboxInput("offset", label = "Show timeseries offset controls."), value = FALSE),
             conditionalPanel(condition = "input.offset && output.show",
                              dygraphOutput("summary_dygraph", height = "100px"),
                              fixedRow(
                                column(width = 5,
                                       numericInput("f1_offset", "Fit 1 Offset",
-                                                   value = 0, step = 1)
+                                                   value = 0, step = 1),
+                                      conditionalPanel(condition = "input.extraf1",
+                                                       numericInput("f1_2_offset", "Fit 1-2 Offset",
+                                                                    value = 0, step = 1))
                                ),
                                column(width = 5,
                                       numericInput("f2_offset", "Fit 2 Offset", 
@@ -126,125 +139,33 @@ server <- function(input, output, session) {
     
   }
   
-  reticulate::source_python("inst/python/read_fit.py")
-  reticulate::source_python("inst/python/fit_meta.py")
-  
   observeEvent(input$generate, {
     
     error_condition <- FALSE
     
-    if(input$demo) {
-      in_fit_1 <- "inst/fit/fit1.fit"
-      in_fit_1_label <- "Demo Source 1"
-      f1_offset <- input$f1_offset
-      in_fit_2 <- "inst/fit/fit2.fit"
-      in_fit_2_label <- "Demo Source 2"
-      f2_offset <- input$f2_offset
-    } else {
-      
-      if(is.null(input$f1)) {
+    conf <- get_conf(input)
+    
+    fit <- get_dat(conf, input$trim)
+    
+    output$f1_meta <- renderUI(HTML(fit$m1))
+    
+    output$fit_1_devices <- function() get_devices_table(fit$d1)
+    
+    output$f2_meta <- renderUI(HTML(fit$m2))
+    
+    output$fit_2_devices <- function() get_devices_table(fit$d2)
+    
+    output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+    
+    tryCatch({
+      if(!is.null(fit$f2)) {
         
-        showNotification("Upload fit file first.", type = "error")
-        return()
+        max_1 <- get_maxes(fit$f1, fit$f2)
+        max_2 <- get_maxes(fit$f2, fit$f1)
         
       } else {
         
-        if(input$f1_label == "") {
-          showNotification("Provide label for first file.", type = "error")
-          return()
-        }
-        
-        in_fit_1 <- check_fit(input$f1$datapath)
-        
-        in_fit_1_label <- input$f1_label
-        
-        f1_offset <- input$f1_offset
-        
-      }
-      
-      if(!is.null(input$f2)) {
-        
-        if(is.null(input$f2_label)) {
-          showNotification("Provide label for secton file.", type = "error")
-          return()
-        }
-        
-        in_fit_2 <- check_fit(input$f2$datapath)
-        
-        in_fit_2_label <- input$f2_label
-        
-        f2_offset <- input$f2_offset
-      }
-      
-    }
-    
-    tryCatch({
-      
-      fit_1 <- read_fit_file(in_fit_1)
-      
-      if(abs(f1_offset) > 0) {
-        fit_1$datetime <- as.POSIXct(fit_1$datetime, tz = "GMT")
-        
-        fit_1$datetime <- fit_1$datetime + f1_offset
-      }
-    },
-    error = function(e) {
-      showNotification(paste("Error reading fit file 1: \n", e), type = "error", duration = NULL)
-      return()
-    })
-    
-    f1_meta <- pretty_fm(get_fit_meta(in_fit_1), in_fit_1_label)
-    output$f1_meta <- renderUI(HTML(f1_meta))
-    
-    f1_devices <- get_device_meta(in_fit_1)
-    output$fit_1_devices <- function() get_devices_table(f1_devices)
-    
-    if(exists("in_fit_2")) {
-      
-      tryCatch({
-        fit_2 <- read_fit_file(check_fit(in_fit_2))
-        
-        if(abs(f2_offset) > 0) {
-          fit_2$datetime <- as.POSIXct(fit_2$datetime, tz = "GMT")
-          
-          fit_2$datetime <- fit_2$datetime + f2_offset
-        }
-        
-        if(input$trim) {
-          fit_1 <- get_overlapping(fit_1, fit_2)
-          fit_2 <- get_overlapping(fit_2, fit_1)
-        }
-      },
-      error = function(e) {
-        showNotification(paste("Error reading fit file 2: \n", e), type = "error", duration = NULL)
-        return()
-      })
-      
-      f2_meta <- pretty_fm(get_fit_meta(in_fit_2), in_fit_2_label)
-      output$f2_meta <- renderUI(HTML(f2_meta))
-      
-      f2_devices <- get_device_meta(in_fit_2)
-      output$fit_2_devices <- function() get_devices_table(f2_devices)
-      output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
-      
-    } else {
-      
-      fit_2 <- NULL
-      f2_meta <- NULL
-      in_fit_2_label <- NULL
-      f2_devices <- NULL
-      
-    }
-    
-    tryCatch({
-      if(!is.null(fit_2)) {
-        
-        max_1 <- get_maxes(fit_1, fit_2)
-        max_2 <- get_maxes(fit_2, fit_1)
-        
-      } else {
-        
-        max_1 <- get_maxes(fit_1)
+        max_1 <- get_maxes(fit$f1)
         max_2 <- NULL
         
       }
@@ -256,13 +177,13 @@ server <- function(input, output, session) {
     
     if(exists("max_1")) {
       output$powerCurve_table <- function() {
-        get_powercurve_table(max_1, max_2, in_fit_1_label, in_fit_2_label)
+        get_powercurve_table(max_1, max_2, conf$f1$label, conf$f2$label)
       }
       
-      output$powerCurve_plot <- renderPlot(powercurve_plot(max_1, max_2, in_fit_1_label, in_fit_2_label))
+      output$powerCurve_plot <- renderPlot(powercurve_plot(max_1, max_2, conf$f1$label, conf$f2$label))
       
       dat <- tryCatch({
-        get_dygraph_data(fit_1, fit_2, in_fit_1_label, in_fit_2_label)
+        get_dygraph_data(fit$f1, fit$f2, conf$f1$label, conf$f2$label)
       },
       error = function(e) {
         showNotification(paste("Error getting timeseries data for plot: \n", e), 
@@ -270,17 +191,17 @@ server <- function(input, output, session) {
         NULL
       })
       
-      app_env$rmd_params$l1 <- in_fit_1_label
+      app_env$rmd_params$l1 <- conf$f1$label
       app_env$rmd_params$m1 <- max_1
-      app_env$rmd_params$f1 <- f1_meta
-      app_env$rmd_params$d1 <- f1_devices
+      app_env$rmd_params$f1 <- dat$m1
+      app_env$rmd_params$d1 <- dat$d1
       app_env$rmd_params$d <- dat
       app_env$ready <- TRUE
       
-      app_env$rmd_params$l2 <- in_fit_2_label
+      app_env$rmd_params$l2 <- conf$f2$label
       app_env$rmd_params$m2 <- max_2
-      app_env$rmd_params$f2 <- f2_meta
-      app_env$rmd_params$d2 <- f2_devices
+      app_env$rmd_params$f2 <- dat$m1
+      app_env$rmd_params$d2 <- dat$d1
       
       output$summary_dygraph <- renderDygraph({
         get_dygraph(dat$power)
