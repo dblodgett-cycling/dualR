@@ -19,40 +19,49 @@ check_fit <- function(f) {
   
 }
 
-get_dygraph_data <- function(fit_1, fit_2 = NULL, l1 = NULL, l2 = NULL) {
-
-  p <- xts(fit_1$power, order.by = fit_1$datetime)
+get_dygraph_data <- function(fit, conf) {
   
-  tzone(p) <- "GMT"
-
-  dat <- list(
-    power = setNames(p,
-                      l1))
-
-  dat <- add_data(fit_1, "elevation", "Elevation", l1, dat)
-
-  dat <- add_data(fit_1, "heartrate", "Heart Rate", l1, dat)
-
-  dat <- add_data(fit_1, "cadence", "Cadence", l1, dat)
-
-  if(!is.null(fit_2)) {
-    p <- xts(fit_2$power, order.by = fit_2$datetime)
+  tryCatch({
     
-    tzone(p) <- "GMT"
+    dat <- build_dat(fit$f1$f, conf$f1$label)
     
-    dat$power <- cbind(dat$power,
-                       setNames(p,
-                                l2))
-
-    dat <- add_data(fit_2, "elevation", "Elevation", l2, dat)
-
-    dat <- add_data(fit_2, "heartrate", "Heart Rate", l2, dat)
-
-    dat <- add_data(fit_2, "cadence", "Cadence", l2, dat)
-  }
-
+    if(!is.null(fit$f1_2$f)) {
+      dat <- build_dat(fit$f1_2$f, conf$f1_2$label, dat)
+    }
+    
+    if(!is.null(fit$f2$f)) {
+      dat <- build_dat(fit$f2$f, conf$f2$label, dat)
+    }
+    
+  },
+  error = function(e) {
+    showNotification(paste("Error getting timeseries data for plot: \n", e), 
+                     type = "error", duration = NULL)
+    dat <- NULL
+  })
+  
   return(dat)
 
+}
+
+build_dat <- function(f, l, dat = NULL) {
+  p <- xts(f$power, order.by = f$datetime)
+  
+  tzone(p) <- "GMT"
+  
+  if(is.null(dat)) {
+    dat <- list(power = setNames(p, l))
+  } else {
+    dat$power <- cbind(dat$power, setNames(p, l))
+  }
+  
+  dat <- add_data(f, "elevation", "Elevation", l, dat)
+  
+  dat <- add_data(f, "heartrate", "Heart Rate", l, dat)
+  
+  dat <- add_data(f, "cadence", "Cadence", l, dat)
+  
+  dat
 }
 
 add_data <- function(fit, field, field_name, fit_label, dat) {
@@ -73,31 +82,43 @@ add_data <- function(fit, field, field_name, fit_label, dat) {
   dat
 }
 
-powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
+powercurve_plot <- function(maxes, conf) {
   {
 
     par(las=2)
 
     max_1_pch <- 16
-
+    max_1_2_pch <- 1
     max_2_pch <- 17
 
-    if(is.null(max_2)) {
+    # unpacking to match old implementation.
+    max_1 <- maxes$m1
+    max_2 <- maxes$m2
+    max_1_2 <- maxes$m1_2
+    
+    plot_range <- seq(min(max_1), max(max_1), length.out = length(max_1))
 
-      plot_range <- seq(min(max_1), max(max_1), length.out = length(max_1))
+    legend_text <- c(conf$f1$label)
+    legend_pch <- max_1_pch
+    legend_color <- "black"
 
-      legend_text <- c(l1)
-      legend_pch <- max_1_pch
-      legend_color <- "black"
+    point_col <- rep("blue", length(max_1))
 
-      point_col <- rep("blue", length(max_1))
+    if(!is.null(max_2)) {
+      
+      if(!is.null(max_1_2)) {
+        legend_text <- c(legend_text, conf$f1_2$label)
+        legend_pch <- c(legend_pch, max_1_2_pch)
+        legend_color <- c(legend_color, "black")
+      }
+      
+      plot_range <- seq(min(max_1, max_2), max(max_1, max_2), 
+                        length.out = length(max_1))
 
-    } else {
-
-      plot_range <- seq(min(max_1, max_2), max(max_1, max_2), length.out = length(max_1))
-
-      legend_text <- c(l1, l2, "diff < 2%", "2% < diff < 4%", "4% < diff < 8%", "diff > 8%")
-      legend_pch <- c(max_1_pch, max_2_pch, 15, 15, 15, 15)
+      legend_text <- c(legend_text, conf$f2$label, 
+                       "diff < 2%", "2% < diff < 4%", "4% < diff < 8%", "diff > 8%")
+      
+      legend_pch <- c(legend_pch, max_2_pch, 15, 15, 15, 15)
 
       perc_diff <- get_perc_diff(max_1, max_2)
 
@@ -105,10 +126,10 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
                           ifelse(perc_diff < 0.04, "yellow",
                                  ifelse(perc_diff < 0.08, "orange", "red")))
 
-      legend_color <- c("black", "black", "green", "yellow", "orange", "red")
+      legend_color <- c(legend_color, "black", "green", "yellow", "orange", "red")
 
     }
-
+  
     plot(plot_range,
          xaxt = "n", ylab = "power (watts)", xlab = NA, col = NA)
 
@@ -116,6 +137,9 @@ powercurve_plot <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
 
     points(max_1, col = point_col, pch = max_1_pch, cex = 2)
 
+    if(!is.null(max_1_2))
+      points(max_1_2, col = "black", pch = max_1_2_pch, cex = 2)
+    
     if(!is.null(max_2))
       points(max_2, col = point_col, pch = max_2_pch, cex = 2)
 
@@ -134,38 +158,49 @@ make_full <- function(x, nms) {
   setNames(c(x, rep(NA, length(nms) - length(x))), nms)
 }
 
-get_powercurve_table <- function(max_1, max_2 = NULL, l1 = NULL, l2 = NULL) {
+get_powercurve_table <- function(maxes, conf) {
   
-  if(!is.null(max_2)) {
-    maxes <- list(max_1, max_2)
+  lens <- lengths(maxes)
+  
+  if(!all(lens == max(lens))) {
     
-    lens <- lengths(maxes)
+    nms <- names(maxes[[which(lens == max(lens))[1]]])
     
-    if(!all(lens == max(lens))) {
-      
-      nms <- names(maxes[[which(lens == max(lens))]])
-      
-      max_1 <- make_full(max_1, nms)
-      max_2 <- make_full(max_2, nms)
-      
-    }
+    maxes$m1 <- make_full(maxes$m1, nms)
+    maxes$m2 <- make_full(maxes$m2, nms)
+    maxes$m1_2 <- make_full(maxes$m1_2, nms)
     
-    data.frame(p = names(max_1),
-               p1 = as.numeric(max_1),
-               p2 = as.numeric(max_2),
-               d = as.numeric(get_perc_diff(max_1, max_2) * 100)) %>%
-      knitr::kable(format = "html", digits = c(0, 0, 0, 1), align = "c",
-                   col.names = c("Period", l1, l2, "% Diff"),
-                   padding = 2) %>%
-      kableExtra::kable_styling()
-  } else {
-    data.frame(p = names(max_1),
-               p1 = as.numeric(max_1)) %>%
-      knitr::kable(format = "html", digits = 0, align = "c",
-                   col.names = c("Period", l1),
-                   padding = 2)  %>%
-      kableExtra::kable_styling()
   }
+  
+  df <- data.frame(p = names(maxes$m1),
+                   p1 = as.numeric(maxes$m1))
+  digits = 0
+  col_names <- conf$f1$label
+  
+  if(!all(is.na(maxes$m1_2))) {
+    df$p1_2 <- as.numeric(maxes$m1_2)
+    df$d1_2 <- as.numeric(get_perc_diff(maxes$m1, maxes$m1_2))
+    digits <- c(digits, 0)
+    col_names <- c(col_names, conf$f1_2$label, "Verification % Diff")
+  }
+  
+  if(!is.null(maxes$m2)) {
+    df$p2 <- as.numeric(maxes$m2)
+    df$d = as.numeric(get_perc_diff(maxes$m1, maxes$m2) * 100)
+    digits <- c(digits, 0, 1)
+    col_names <- c(col_names, conf$f2$label, "Validation % Diff")
+  }
+  
+  nms <- df$p
+  
+  df <- t(dplyr::select(df, -p))
+  
+  row.names(df) <- col_names
+  
+  df %>%
+    knitr::kable(format = "html", digits = digits, align = "c",
+                 col.names = nms, padding = 2) %>%
+    kableExtra::kable_styling()
 }
 
 get_devices_table <- function(devices) {
@@ -190,6 +225,11 @@ get_perc_diff <- function(max_1, max_2) {
   suppressWarnings(round((abs(max_1 - max_2) / ((max_1 + max_2) / 2)), 4))
 }
 
+#' get configuration
+#' @description given app input, return fit file information. 
+#' Implements three fit file logic using check_input on each.
+#' @param input shiny app input
+#' 
 get_conf <- function(input) {
   
   temp <- list(f = NULL, label = NULL, offset = NULL)
@@ -198,12 +238,15 @@ get_conf <- function(input) {
   
   if(input$demo) {
     
-    conf$f1$f <- "inst/fit/fit1.fit"
-    conf$f1$label <- "Demo Source 1"
-    conf$f1$offset <- input$f1_offset
-    conf$f2$f <- "inst/fit/fit2.fit"
-    conf$f2$label <- "Demo Source 2"
-    conf$f2$offset <- input$f2_offset
+    conf$f1$f <- "inst/fit/rgt/02_rgt_neo.fit"
+    conf$f1$label <- "Neo from RGT"
+    conf$f1$offset <- 0
+    conf$f2$f <- "inst/fit/rgt/02_garmin_quarqd4.fit"
+    conf$f2$label <- "QuarqD4 validation from Garmin"
+    conf$f2$offset <- -80
+    conf$f1_2$f <- "inst/fit/rgt/02_wahoo_neo.fit"
+    conf$f1_2$label <- "Neo verification from Wahoo"
+    conf$f1_2$offset <- 0
     
   } else {
     
@@ -224,6 +267,13 @@ get_conf <- function(input) {
   conf
 }
 
+#' check input 
+#' @description given fit file descriptors, return configuration object.
+#' @param f input file object
+#' @param label label for fit file
+#' @offset offset for fit file in seconds
+#' @conf existing conf (needed?)
+#' 
 check_input <- function(f, label, offset, conf) {
   if(is.null(f)) {
     
@@ -247,7 +297,13 @@ check_input <- function(f, label, offset, conf) {
   }
 }
 
-get_dat <- function(conf, trim) {
+#' get fit data
+#' @description given a three fit configuration file, return data derived from the files.
+#' Uses get_fit on all inputs
+#' @param conf return from get_conf
+#' @param trim logical trim inputs to common time range?
+#' 
+get_fit_data <- function(conf, trim) {
   
   fit_1 <- get_fit(conf$f1, err = "Error reading fit file 1: \n")
   
@@ -276,19 +332,42 @@ get_dat <- function(conf, trim) {
     
   }
   
-  return(list(f1 = fit_1, m1 = f1_meta, d1 = f1_devices, 
-              f2 = fit_2, m2 = f2_meta, d2 = f2_devices))
+  if(!is.null(conf$f1_2$f)) { 
+    fit_1_2 <- get_fit(conf$f1_2, err = "Error reading fit file 2: \n")
+    
+    if(trim) {
+      fit_1 <- get_overlapping(fit_1, fit_1_2)
+      fit_2 <- get_overlapping(fit_2, fit_1_2)
+      fit_1_2 <- get_overlapping(fit_1_2, fit_1)
+    }
+    
+    f1_2_meta <- pretty_fm(get_fit_meta(conf$f1_2$f), conf$f1_2$label)
+    
+    f1_2_devices <- get_device_meta(conf$f1_2$f)
+  } else {
+    fit_1_2 <- NULL
+    f1_2_meta <- NULL
+    f1_2_devices <- NULL
+  } 
+  
+  return(list(f1 = list(f = fit_1, m = f1_meta, d = f1_devices), 
+              f2 = list(f = fit_2, m = f2_meta, d = f2_devices),
+              f1_2 = list(f = fit_1_2, m = f1_2_meta, d = f1_2_devices)))
 }
 
-get_fit <- function(x, err) {
+#' get fit
+#' @description given a fit file, return all timeseries data
+#' @param x list "f" path to fit file "offset" offset in seconds
+#' @param err error message
+get_fit <- function(x, err = "") {
   tryCatch({
     
-    fit_1 <- read_fit_file(x$f)
+    fit <- read_fit_file(x$f)
     
     if(abs(x$offset) > 0) {
-      fit_1$datetime <- as.POSIXct(fit_1$datetime, tz = "GMT")
+      fit$datetime <- as.POSIXct(fit$datetime, tz = "GMT")
       
-      fit_1$datetime <- fit_1$datetime + x$offset
+      fit$datetime <- fit$datetime + x$offset
     }
   },
   error = function(e) {
@@ -296,5 +375,5 @@ get_fit <- function(x, err) {
     return()
   })
   
-  return(fit_1)
+  return(fit)
 }

@@ -15,26 +15,30 @@ ui <- fluidPage(
             p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
             p("dualR is being provided as a service to the community. It is free and open source."),
             p(HTML('See <a href="https://github.com/dblodgett-cycling/dualR" target="_blank">the github repository</a> for more information or to ask questions.')),
+            p(HTML(paste0("Three input files can be supplied: <strong>Primary, verification, and validation</strong>. ", 
+                          "The expectation is that <strong>'primary'</strong> comes from a virtual cycling platform, ", 
+                          "<strong>'verification'</strong> is a second recording of the same physical power source, ", 
+                          "and <strong>'validation'</strong> is a second physical power source."))),
             fixedRow(column(width = 5,
                             fileInput("f1", 
-                                      label = "Fit 1", 
+                                      label = "Primary", 
                                       multiple = FALSE, 
                                       accept = c(".fit", ".zip")),
                             textInput(inputId = "f1_label", label = "File 1 Label",
                                       width = "200px",
                                       placeholder = "e.g. Race Recording"),
-                            checkboxInput("extraf1", "Add extra copy of fit 1", value = FALSE),
+                            checkboxInput("extraf1", "Add verification of primary", value = FALSE),
                             conditionalPanel(condition = "input.extraf1",
                                              fileInput("f1_2", 
-                                                       label = "Fit 1-2", 
+                                                       label = "Verification", 
                                                        multiple = FALSE, 
                                                        accept = c(".fit", ".zip")),
-                                             textInput(inputId = "f1_2_label", label = "File 1-2 Label",
+                                             textInput(inputId = "f1_2_label", label = "Verification Label",
                                                        width = "200px",
                                                        placeholder = "e.g. Secondary Trianer Recording"))),
                      column(width = 5,
-                            fileInput("f2", "Fit 2", multiple = FALSE, accept = c(".fit", ".zip")),
-                            textInput(inputId = "f2_label", label = "File 2 Label",
+                            fileInput("f2", "Validation", multiple = FALSE, accept = c(".fit", ".zip")),
+                            textInput(inputId = "f2_label", label = "Validation Label",
                                       width = "200px",
                                       placeholder = "e.g. Power Meter Verification")
                             ),
@@ -57,14 +61,14 @@ ui <- fluidPage(
                              dygraphOutput("summary_dygraph", height = "100px"),
                              fixedRow(
                                column(width = 5,
-                                      numericInput("f1_offset", "Fit 1 Offset",
+                                      numericInput("f1_offset", "Primary Offset",
                                                    value = 0, step = 1),
                                       conditionalPanel(condition = "input.extraf1",
-                                                       numericInput("f1_2_offset", "Fit 1-2 Offset",
+                                                       numericInput("f1_2_offset", "Verification Offset",
                                                                     value = 0, step = 1))
                                ),
                                column(width = 5,
-                                      numericInput("f2_offset", "Fit 2 Offset", 
+                                      numericInput("f2_offset", "Validation Offset", 
                                                    value = 0, step = 1)
                                ),
                                column(width = 2, br(),
@@ -89,18 +93,17 @@ ui <- fluidPage(
                              h4("Connected Device Metadata"),
                              tableOutput("fit_1_devices"),
                              br(), br(),
+                             htmlOutput("f1_2_meta"),
+                             htmlOutput("fit_1_2_device_heading"),
+                             tableOutput("fit_1_2_devices"),
+                             br(), br(),
                              htmlOutput("f2_meta"),
                              htmlOutput("fit_2_device_heading"),
                              tableOutput("fit_2_devices"),
                              br(),
                              h3("Critical Power Comparison"),
-                             fixedRow(column(width = 3,
-                                             br(),
-                                             br(),
-                                             tableOutput("powerCurve_table")),
-                                      column(width = 9,
-                                             plotOutput("powerCurve_plot"))),
-                             p("NOTE: Critical powers are calculated on the overlapping portion of inputs only."),
+                             tableOutput("powerCurve_table"),
+                             plotOutput("powerCurve_plot"),
                              br(),
                              p("Double click for zoom full."),
                              dygraphOutput("power_dygraph"),
@@ -145,61 +148,56 @@ server <- function(input, output, session) {
     
     conf <- get_conf(input)
     
-    fit <- get_dat(conf, input$trim)
+    fit <- get_fit_data(conf, input$trim)
     
-    output$f1_meta <- renderUI(HTML(fit$m1))
+    output$f1_meta <- renderUI(HTML(fit$f1$m))
     
-    output$fit_1_devices <- function() get_devices_table(fit$d1)
+    output$fit_1_devices <- function() get_devices_table(fit$f1$d)
     
-    output$f2_meta <- renderUI(HTML(fit$m2))
+    output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
     
-    output$fit_2_devices <- function() get_devices_table(fit$d2)
+    output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
+    
+    output$fit_1_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+    
+    output$f2_meta <- renderUI(HTML(fit$f2$m))
+    
+    output$fit_2_devices <- function() get_devices_table(fit$f2$d)
     
     output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
     
     tryCatch({
-      if(!is.null(fit$f2)) {
-        
-        max_1 <- get_maxes(fit$f1, fit$f2)
-        max_2 <- get_maxes(fit$f2, fit$f1)
-        
-      } else {
-        
-        max_1 <- get_maxes(fit$f1)
-        max_2 <- NULL
-        
-      }
+      
+      maxes <- list(m1 = get_maxes(fit$f1$f),
+                    m1_2 = NULL, m2 = NULL)
+
+      if(!is.null(fit$f1_2$f)) maxes$m1_2 <- get_maxes(fit$f1_2$f)
+      
+      if(!is.null(fit$f2$f)) maxes$m2 <- get_maxes(fit$f2$f)
+      
     }, error = function(e) {
       showNotification(paste("Error calculating critical powers. Original error was:", e), 
                        type = "error", duration = NULL)
       return()
     })
     
-    if(exists("max_1")) {
       output$powerCurve_table <- function() {
-        get_powercurve_table(max_1, max_2, conf$f1$label, conf$f2$label)
+        get_powercurve_table(maxes, conf)
       }
       
-      output$powerCurve_plot <- renderPlot(powercurve_plot(max_1, max_2, conf$f1$label, conf$f2$label))
+      output$powerCurve_plot <- renderPlot(powercurve_plot(maxes, conf))
       
-      dat <- tryCatch({
-        get_dygraph_data(fit$f1, fit$f2, conf$f1$label, conf$f2$label)
-      },
-      error = function(e) {
-        showNotification(paste("Error getting timeseries data for plot: \n", e), 
-                         type = "error", duration = NULL)
-        NULL
-      })
+      dat <- get_dygraph_data(fit, conf)
       
       app_env$rmd_params$l1 <- conf$f1$label
-      app_env$rmd_params$m1 <- max_1
+      app_env$rmd_params$m1 <- maxes$m1
       app_env$rmd_params$f1 <- dat$m1
       app_env$rmd_params$d1 <- dat$d1
       app_env$rmd_params$d <- dat
       app_env$ready <- TRUE
       
       app_env$rmd_params$l2 <- conf$f2$label
-      app_env$rmd_params$m2 <- max_2
+      app_env$rmd_params$m2 <- maxes$m2
       app_env$rmd_params$f2 <- dat$m1
       app_env$rmd_params$d2 <- dat$d1
       
@@ -228,7 +226,6 @@ server <- function(input, output, session) {
           get_dygraph(dat$cadence)
         })
       }
-    }
   })
   
   output$show <- reactive({
