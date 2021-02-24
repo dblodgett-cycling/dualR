@@ -2,14 +2,9 @@
 title: "Dual Power Comparison"
 output: html_document
 params:
-  f1_meta: NA
-  f2_meta: NA
-  f1_devices: NA
-  f2_devices: NA
-  in_fit_1_label: NA
-  in_fit_2_label: NA
-  max_1: NA
-  max_2: NA
+  fit: NA
+  conf: NA
+  maxes: NA
   dat: NA
 ---
 
@@ -31,32 +26,44 @@ library(dualR)
 source("utils.R")
 ```
 
+## Source Metadata Summary
 ```{r max, results='asis'}
+
 cat(
-  params$f1_meta  
+  params$fit$f1$m 
 )
 
-get_devices_table(params$f1_devices)
+get_devices_table(params$fit$f1$d)
 
 cat("<br/><br/>")
 
 cat(
-  params$f2_meta
+  params$fit$f1_2$m
 )
 
-get_devices_table(params$f2_devices)
-```
+get_devices_table(params$fit$f1_2$d)
 
+cat("<br/><br/>")
+
+cat(
+  params$fit$f2$m
+)
+
+get_devices_table(params$fit$f2$d)
+
+
+```
+## Critical Power Comparison
 ```{r max_table}
-get_powercurve_table(params$max_1, params$max_2, 
-                     params$in_fit_1_label, params$in_fit_2_label)
+get_powercurve_table(params$maxes, params$conf)
 
 ```
-NOTE: Critical powers are calculated on the overlapping portion of inputs only.  
+
 ```{r plot}
-powercurve_plot(params$max_1, params$max_2, 
-                params$in_fit_1_label, params$in_fit_2_label)
+powercurve_plot(params$maxes, params$conf)
 ```
+
+## Raw Data Plots
 
 Double click for zoom full.
 ```{r plots, fig.width=10, fig.height=2.5}

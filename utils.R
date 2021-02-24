@@ -179,7 +179,7 @@ get_powercurve_table <- function(maxes, conf) {
   
   if(!all(is.na(maxes$m1_2))) {
     df$p1_2 <- as.numeric(maxes$m1_2)
-    df$d1_2 <- as.numeric(get_perc_diff(maxes$m1, maxes$m1_2))
+    df$d1_2 <- as.numeric(get_perc_diff(maxes$m1, maxes$m1_2) * 100)
     digits <- c(digits, 0)
     col_names <- c(col_names, conf$f1_2$label, "Verification % Diff")
   }

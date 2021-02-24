@@ -58,7 +58,7 @@ ui <- fluidPage(
                              checkboxInput("trim", label = "Trim timeseries to overlapping parts.", value = FALSE),
                              checkboxInput("offset", label = "Show timeseries offset controls."), value = FALSE),
             conditionalPanel(condition = "input.offset && output.show",
-                             dygraphOutput("summary_dygraph", height = "100px"),
+                             dygraphOutput("summary_dygraph"),
                              fixedRow(
                                column(width = 5,
                                       numericInput("f1_offset", "Primary Offset",
@@ -189,17 +189,11 @@ server <- function(input, output, session) {
       
       dat <- get_dygraph_data(fit, conf)
       
-      app_env$rmd_params$l1 <- conf$f1$label
-      app_env$rmd_params$m1 <- maxes$m1
-      app_env$rmd_params$f1 <- dat$m1
-      app_env$rmd_params$d1 <- dat$d1
+      app_env$rmd_params$fit <- fit
+      app_env$rmd_params$conf <- conf
+      app_env$rmd_params$maxes <- maxes
       app_env$rmd_params$d <- dat
       app_env$ready <- TRUE
-      
-      app_env$rmd_params$l2 <- conf$f2$label
-      app_env$rmd_params$m2 <- maxes$m2
-      app_env$rmd_params$f2 <- dat$m1
-      app_env$rmd_params$d2 <- dat$d1
       
       output$summary_dygraph <- renderDygraph({
         get_dygraph(dat$power)
@@ -238,14 +232,9 @@ server <- function(input, output, session) {
     filename = "dualReport.html",
     content = function(file) {
       
-      params <- list(f1_meta = app_env$rmd_params$f1,
-                     f2_meta = app_env$rmd_params$f2,
-                     f1_devices = app_env$rmd_params$d1,
-                     f2_devices = app_env$rmd_params$d2,
-                     in_fit_1_label = app_env$rmd_params$l1,
-                     in_fit_2_label = app_env$rmd_params$l2,
-                     max_1 = app_env$rmd_params$m1,
-                     max_2 = app_env$rmd_params$m2,
+      params <- list(fit = app_env$rmd_params$fit,
+                     conf = app_env$rmd_params$conf,
+                     maxes = app_env$rmd_params$maxes,
                      dat = app_env$rmd_params$d)
       
       rmarkdown::render("compare.Rmd", output_file = file,
