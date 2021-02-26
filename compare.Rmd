@@ -37,13 +37,19 @@ get_devices_table(params$fit$f1$d)
 
 cat("<br/><br/>")
 
+if(!is.null(params$fit$f1_2$m)) {
+
 cat(
   params$fit$f1_2$m
 )
 
 get_devices_table(params$fit$f1_2$d)
 
+}
+
 cat("<br/><br/>")
+
+if(!is.null(params$fit$f2$m)) {
 
 cat(
   params$fit$f2$m
@@ -51,7 +57,7 @@ cat(
 
 get_devices_table(params$fit$f2$d)
 
-
+}
 ```
 ## Critical Power Comparison
 ```{r max_table}

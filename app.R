@@ -154,17 +154,22 @@ server <- function(input, output, session) {
     
     output$fit_1_devices <- function() get_devices_table(fit$f1$d)
     
-    output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
+    if(!is.null(fit$f1_2$m)) {
+      output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
     
-    output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
+      output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
+      
+      output$fit_1_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+    }
     
-    output$fit_1_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+    if(!is.null(fit$f2$m)) {
     
-    output$f2_meta <- renderUI(HTML(fit$f2$m))
+      output$f2_meta <- renderUI(HTML(fit$f2$m))
     
-    output$fit_2_devices <- function() get_devices_table(fit$f2$d)
+      output$fit_2_devices <- function() get_devices_table(fit$f2$d)
     
-    output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+      output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+    }
     
     tryCatch({
       
