@@ -114,7 +114,6 @@ ui <- fluidPage(
   
 )
 
-
 server <- function(input, output, session) {
   
   # ------------------ App virtualenv setup (Do not edit) ------------------- #
@@ -144,9 +143,18 @@ server <- function(input, output, session) {
   
   observeEvent(input$generate, {
     
+    output$status_message <- renderUI(paste("Starting Process", conf$f1$label))
+    
+    showModal(modalDialog(title = "Loading...", 
+                          "Sit tight, this won't take long."))
+    
+    on.exit(removeModal())
+    
     error_condition <- FALSE
     
     conf <- get_conf(input)
+    
+    if(is.null(conf$f1$f)) return()
     
     fit <- get_fit_data(conf, input$trim)
     
@@ -198,7 +206,6 @@ server <- function(input, output, session) {
       app_env$rmd_params$conf <- conf
       app_env$rmd_params$maxes <- maxes
       app_env$rmd_params$d <- dat
-      app_env$ready <- TRUE
       
       output$summary_dygraph <- renderDygraph({
         get_dygraph(dat$power)
@@ -225,6 +232,8 @@ server <- function(input, output, session) {
           get_dygraph(dat$cadence)
         })
       }
+      
+      app_env$ready <- TRUE
   })
   
   output$show <- reactive({

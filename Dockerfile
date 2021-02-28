@@ -2,8 +2,7 @@
 FROM rocker/shiny-verse:4.0.1
 
 # install R packages required
-# (change it dependeing on the packages you need)
-RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS
+RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS kableExtra
 
 RUN installGithub.r dblodgett-cycling/dualR
 
@@ -34,12 +33,15 @@ COPY app.R /srv/shiny-server/
 COPY utils.R /srv/shiny-server/
 COPY compare.Rmd /srv/shiny-server/
 COPY inst /srv/shiny-server/inst
+COPY shiny-server.conf /etc/shiny-server/
   
 # select port
 EXPOSE 3838 2222
 
 # allow permission
 RUN sudo chown -R shiny:shiny /srv/shiny-server
+
+ENV SHINY_LOG_STDERR=1
 
 # run app
 ENTRYPOINT ["init.sh"]
