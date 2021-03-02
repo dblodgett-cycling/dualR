@@ -33,7 +33,7 @@ cat(
   params$fit$f1$m 
 )
 
-get_devices_table(params$fit$f1$d)
+get_device_summary_table(params$fit$f1$s)
 
 cat("<br/><br/>")
 
@@ -42,8 +42,8 @@ if(!is.null(params$fit$f1_2$m)) {
 cat(
   params$fit$f1_2$m
 )
-
-get_devices_table(params$fit$f1_2$d)
+  
+get_device_summary_table(params$fit$f1_2$s)
 
 }
 
@@ -55,7 +55,7 @@ cat(
   params$fit$f2$m
 )
 
-get_devices_table(params$fit$f2$d)
+get_device_summary_table(params$fit$f2$s)
 
 }
 ```
@@ -82,4 +82,30 @@ get_dygraph(dat$heartrate)
 get_dygraph(dat$elevation)
 
 get_dygraph(dat$cadence)
+```
+
+## Complete Devices Tables
+
+```{r devices, results='asis'}
+cat(
+  params$fit$f1$m 
+)
+
+get_devices_table(params$fit$f1$d)
+
+if(!is.null(params$fit$f1_2$m)) {
+  cat(
+    params$fit$f1_2$m 
+  ) 
+  get_devices_table(params$fit$f1_2$d)
+  
+}
+
+if(!is.null(params$fit$f2$m)) {
+  cat(
+    params$fit$f1$m 
+  )
+  
+  get_devices_table(params$fit$f2$d)
+}
 ```
