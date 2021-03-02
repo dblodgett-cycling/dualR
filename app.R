@@ -9,6 +9,8 @@ PYTHON_DEPENDENCIES = c('sweat')
 
 source("utils.R")
 
+options(shiny.maxRequestSize=30*1024^2) 
+
 ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),
             br(),
