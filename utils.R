@@ -1,9 +1,9 @@
 pretty_fm <- function(fm, l) {
 
-  fm[sapply(fm, is.null)] <- ""
+  fm[sapply(fm, is.null)] <- "unknown"
 
-  sprintf("<h4>%s</h4> <br/> Manufacturer: %s <br/> Serial Number: %s <br/> Created: %s",
-          l, fm$manufacturer, fm$serial_number, fm$time_created)
+  sprintf("<h4>%s</h4> Data Source: %s <br/> Created: %s",
+          l, fm$manufacturer, fm$time_created)
 }
 
 check_fit <- function(f) {
@@ -214,6 +214,19 @@ get_devices_table <- function(devices) {
     kableExtra::kable_styling()
 }
 
+get_device_summary_table <- function(s) {
+  
+  s <- lapply(s, function(x) {
+    x[sapply(x, is.null)] <- "unknown"
+    x
+  })
+  
+  knitr::kable(cbind(as.data.frame(s$fit), as.data.frame(s$power)),
+               padding = 2, format = "html") %>%
+    kableExtra::add_header_above(c("Data Logger" = 3, "Power Source" = 3)) %>%
+    kableExtra::kable_styling()
+}
+
 get_dygraph <- function(dat) {
   dygraph(dat, group = "one") %>%
     dyRangeSelector(height = 20) %>%
@@ -311,6 +324,8 @@ get_fit_data <- function(conf, trim) {
   
   f1_devices <- get_device_meta(conf$f1$f)
   
+  f1_device_summary <- get_devices_summary(f1_devices)
+  
   if(!is.null(conf$f2$label)) {
     
     fit_2 <- get_fit(conf$f2, err = "Error reading fit file 2: \n")
@@ -320,16 +335,18 @@ get_fit_data <- function(conf, trim) {
       fit_2 <- get_overlapping(fit_2, fit_1)
     }
     
-    f2_meta <- pretty_fm(get_fit_meta(conf$f1$f), conf$f2$label)
+    f2_meta <- pretty_fm(get_fit_meta(conf$f2$f), conf$f2$label)
     
     f2_devices <- get_device_meta(conf$f2$f)
+    
+    f2_device_summary <- get_devices_summary(f2_devices)
     
   } else {
     
     fit_2 <- NULL
     f2_meta <- NULL
     f2_devices <- NULL
-    
+    f2_device_summary <- NULL
   }
   
   if(!is.null(conf$f1_2$f)) { 
@@ -344,15 +361,18 @@ get_fit_data <- function(conf, trim) {
     f1_2_meta <- pretty_fm(get_fit_meta(conf$f1_2$f), conf$f1_2$label)
     
     f1_2_devices <- get_device_meta(conf$f1_2$f)
+    
+    f1_2_device_summary <- get_devices_summary(f1_2_devices)
   } else {
     fit_1_2 <- NULL
     f1_2_meta <- NULL
     f1_2_devices <- NULL
+    f1_2_device_summary <- NULL
   } 
   
-  return(list(f1 = list(f = fit_1, m = f1_meta, d = f1_devices), 
-              f2 = list(f = fit_2, m = f2_meta, d = f2_devices),
-              f1_2 = list(f = fit_1_2, m = f1_2_meta, d = f1_2_devices)))
+  return(list(f1 = list(f = fit_1, m = f1_meta, d = f1_devices, s = f1_device_summary), 
+              f2 = list(f = fit_2, m = f2_meta, d = f2_devices, s = f2_device_summary),
+              f1_2 = list(f = fit_1_2, m = f1_2_meta, d = f1_2_devices, s = f1_2_device_summary)))
 }
 
 #' get fit

@@ -91,17 +91,27 @@ ui <- fluidPage(
             conditionalPanel(condition = "output.show",
                              downloadButton("run_report", label = "Download Report"),
                              h3("Power Source Metadata"),
+                             checkboxInput("showdetails", label = "Show Full Device Tables", value = FALSE),
                              htmlOutput("f1_meta"),
                              h4("Connected Device Metadata"),
-                             tableOutput("fit_1_devices"),
+                             tableOutput("fit_1_ds"),
+                             conditionalPanel(condition = "input.showdetails",
+                                              tableOutput("fit_1_devices")
+                             ),
                              br(), br(),
                              htmlOutput("f1_2_meta"),
                              htmlOutput("fit_1_2_device_heading"),
-                             tableOutput("fit_1_2_devices"),
+                             tableOutput("fit_1_2_ds"),
+                             conditionalPanel(condition = "input.showdetails",
+                                              tableOutput("fit_1_2_devices")
+                             ),
                              br(), br(),
                              htmlOutput("f2_meta"),
                              htmlOutput("fit_2_device_heading"),
-                             tableOutput("fit_2_devices"),
+                             tableOutput("fit_2_ds"),
+                             conditionalPanel(condition = "input.showdetails",
+                                              tableOutput("fit_2_devices")
+                             ),
                              br(),
                              h3("Critical Power Comparison"),
                              tableOutput("powerCurve_table"),
@@ -164,10 +174,14 @@ server <- function(input, output, session) {
     
     output$fit_1_devices <- function() get_devices_table(fit$f1$d)
     
+    output$fit_1_ds <- function() get_device_summary_table(fit$f1$s)
+    
     if(!is.null(fit$f1_2$m)) {
       output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
     
       output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
+      
+      output$fit_1_2_ds <- function() get_device_summary_table(fit$f1_2$s)
       
       output$fit_1_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
     }
@@ -178,6 +192,8 @@ server <- function(input, output, session) {
     
       output$fit_2_devices <- function() get_devices_table(fit$f2$d)
     
+      output$fit_2_ds <- function() get_device_summary_table(fit$f2$s)
+      
       output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
     }
     
