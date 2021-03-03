@@ -145,7 +145,8 @@ server <- function(input, output, session) {
   
   if(!env_ready) {
     
-    reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+    reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path, 
+                                  system_site_packages = TRUE)
     reticulate::virtualenv_install(virtualenv_dir, packages = c(PYTHON_DEPENDENCIES),
                                    ignore_installed=FALSE)
     
