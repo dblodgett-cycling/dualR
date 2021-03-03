@@ -4,7 +4,7 @@ FROM rocker/shiny-verse:4.0.1
 # install R packages required
 RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS kableExtra
 
-RUN installGithub.r dblodgett-cycling/dualR
+RUN installGithub.r dblodgett-cycling/dualR@v0.0.1
 
 RUN sudo apt-get update
 RUN sudo apt-get install -y python3-pip
