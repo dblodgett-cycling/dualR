@@ -85,7 +85,7 @@ clean_table <- function(x) {
     x <- x[, fltr, with = FALSE]
   }
   
-  x
+  as.data.frame(x)
 }
 
 #' Get Device Metadata
@@ -137,7 +137,7 @@ get_device_meta_sdk <- function(f) {
   
   system2("java", c("-jar", fitcsvjar, "--defn none", "--data device_info", f))
   
-  clean_device_info(as.data.frame(clean_table(fread(out_f, fill = TRUE))))
+  clean_device_info(clean_table(fread(out_f, fill = TRUE)))
   
 }
 

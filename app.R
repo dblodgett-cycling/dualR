@@ -11,6 +11,13 @@ source("utils.R")
 
 options(shiny.maxRequestSize=30*1024^2) 
 
+if(Sys.info()[['user']] == 'root'){
+  
+  # docker 
+  Sys.setenv(FITCSVTOOL = "/usr/local/bin/FitCSVTool.jar")
+  
+}
+
 ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),
             br(),
@@ -127,34 +134,6 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  
-  if(Sys.getenv("FITCSVTOOL") == "") {
-    # ------------------ App virtualenv setup (Do not edit) ------------------- #
-    
-    virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
-    python_path = Sys.getenv('PYTHON_PATH')
-    
-    app_env$ready <- FALSE
-    
-    env_ready <- FALSE
-    
-    try({
-      reticulate::use_virtualenv(virtualenv_dir, required = TRUE)
-      sys <- reticulate::import("sys")
-      env_ready <- all(PYTHON_DEPENDENCIES %in% names(sys$modules))
-    }, silent = TRUE)
-    
-    if(!env_ready) {
-      
-      reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path, 
-                                    system_site_packages = TRUE)
-      reticulate::virtualenv_install(virtualenv_dir, packages = c(PYTHON_DEPENDENCIES),
-                                     ignore_installed=FALSE)
-      
-      reticulate::use_virtualenv(virtualenv_dir, required = TRUE)
-      
-    }
-  }
   
   observeEvent(input$generate, {
     
