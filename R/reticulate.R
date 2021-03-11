@@ -1,4 +1,5 @@
 .data <- NULL
+datatable.aware = TRUE 
 
 #' Read Fit File
 #' @param f path to fit file
@@ -6,10 +7,34 @@
 #' @examples 
 #' read_fit_file(system.file("fit/fit1.fit", package = "dualR"))
 read_fit_file <- function(f) {
+  
+  if(Sys.getenv("FITCSVTOOL") != "") {
+    return(read_fit_file_sdk(f))
+  }
+  
   sweat <- reticulate::import("sweat", convert = FALSE)
   d <- sweat$read_fit(f)
   d <- d$reset_index()
   reticulate::py_to_r(d)
+}
+
+#' @importFrom data.table fread
+read_fit_file_sdk <- function(f, overwrite = TRUE) {
+  out_f <- gsub("\\.fit", "_data.csv", f)
+  out_f_2 <- gsub("\\.fit", ".csv", f)
+  
+  on.exit(unlink(c(out_f, out_f_2)))
+  
+  fitcsvjar <- Sys.getenv("FITCSVTOOL")
+
+  system2("java", c("-jar", fitcsvjar, "--defn none", "--data record", f))
+
+  record <- clean_table(fread(out_f, fill = TRUE))
+  
+  fit_time_origin <- as.POSIXct("1989-12-31 00:00:00", tz = "GMT")
+  
+  record$timestamp <- as.POSIXct(record$timestamp, tz = "GMT", 
+                                 origin = fit_time_origin)
 }
 
 #' Get Fit Metadata
@@ -18,6 +43,11 @@ read_fit_file <- function(f) {
 #' @examples
 #' get_fit_meta(system.file("fit/fit2.fit", package = "dualR"))
 get_fit_meta <- function(f) {
+  
+  if(Sys.getenv("FITCSVTOOL") != "") {
+    return(get_fit_meta_sdk(f))
+  }
+  
   fitparse <- reticulate::import("fitparse")
   
   fitfile <- fitparse$FitFile(f)
@@ -34,12 +64,41 @@ get_fit_meta <- function(f) {
   
 }
 
+get_fit_meta_sdk <- function(f) {
+  out_f <- gsub("\\.fit", "_data.csv", f)
+  out_f_2 <- gsub("\\.fit", ".csv", f)
+  
+  on.exit(unlink(c(out_f, out_f_2)))
+  
+  fitcsvjar <- Sys.getenv("FITCSVTOOL")
+  
+  system2("java", c("-jar", fitcsvjar, "--defn none", "--data file_id", f))
+  
+  clean_table(fread(out_f, fill = TRUE))
+  
+}
+
+clean_table <- function(x) {
+  names(x) <- gsub("\\[.*\\]", "", gsub(".*\\.", "", names(x)))
+  
+  if(any(!(fltr <- !grepl("^V", names(x))))) {
+    x <- x[, fltr, with = FALSE]
+  }
+  
+  x
+}
+
 #' Get Device Metadata
 #' @param f path to fit file
 #' @export
 #' @examples 
 #' get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
 get_device_meta <- function(f) {
+  
+  if(Sys.getenv("FITCSVTOOL") != "") {
+    return(get_device_meta_sdk(f))
+  }
+  
   fitparse <- reticulate::import("fitparse")
   
   fitfile <- fitparse$FitFile(f)
@@ -65,6 +124,20 @@ get_device_meta <- function(f) {
   }
   
   clean_device_info(dplyr::bind_rows(out))
+  
+}
+
+get_device_meta_sdk <- function(f) {
+  out_f <- gsub("\\.fit", "_data.csv", f)
+  out_f_2 <- gsub("\\.fit", ".csv", f)
+  
+  on.exit(unlink(c(out_f, out_f_2)))
+  
+  fitcsvjar <- Sys.getenv("FITCSVTOOL")
+  
+  system2("java", c("-jar", fitcsvjar, "--defn none", "--data device_info", f))
+  
+  clean_device_info(as.data.frame(clean_table(fread(out_f, fill = TRUE))))
   
 }
 

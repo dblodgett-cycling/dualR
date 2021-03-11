@@ -6,13 +6,19 @@ RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS kableExtra
 
 RUN installGithub.r dblodgett-cycling/dualR@v0.0.1
 
-RUN sudo apt-get update
-RUN sudo apt-get install -y python3-pip
-RUN sudo pip3 install --upgrade pip
-RUN sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
-RUN sudo apt-get install -y python3-venv
+# install java packages
+RUN apt-get update && \
+    apt-get install -y curl \
+    wget \
+    openjdk-8-jdk
 
-RUN pip install sweat==0.17.0
+RUN cd /tmp && \
+    wget https://developer.garmin.com/downloads/fit/sdk/FitSDKRelease_21.47.00.zip && \
+    unzip FitSDKRelease_21.47.00.zip && \
+    cp java/FitCSVTool.jar /usr/local/bin/ && \
+    chmod +x /usr/local/bin/FitCSVTool.jar
+    
+ENV FITCSVTOOL=/usr/local/bin/FitCSVTool.jar
 
 ENV SSH_PASSWD "root:Docker!"
 RUN apt-get update \

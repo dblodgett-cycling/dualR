@@ -1,6 +1,7 @@
 # Edit this name if desired when starting a new app
 VIRTUALENV_NAME = 'venv_python'
 
+Sys.setenv("FITCSVTOOL" = "/Users/dblodgett/Documents/FitSDKRelease_21.47.00/java/FitCSVTool.jar")
 
 # ------------------------- Settings (Do not edit) -------------------------- #
 
