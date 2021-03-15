@@ -55,6 +55,14 @@ build_dat <- function(f, l, dat = NULL) {
     dat$power <- cbind(dat$power, setNames(p, l))
   }
   
+  if("altitude" %in% names(f)) {
+    f <- dplyr::rename(f, elevation = altitude)
+  }
+  
+  if("heart_rate" %in% names(f)) {
+    f <- dplyr::rename(f, heartrate = heart_rate)
+  }
+  
   dat <- add_data(f, "elevation", "Elevation", l, dat)
   
   dat <- add_data(f, "heartrate", "Heart Rate", l, dat)
