@@ -4,8 +4,6 @@ FROM rocker/shiny-verse:4.0.1
 # install R packages required
 RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS kableExtra
 
-RUN installGithub.r dblodgett-cycling/dualR@977ec3a
-
 # install java packages
 RUN apt-get update && \
     apt-get install -y curl \
@@ -31,6 +29,8 @@ COPY sshd_config /etc/ssh/
 COPY init.sh /usr/local/bin/
 
 RUN chmod u+x /usr/local/bin/init.sh
+
+RUN installGithub.r dblodgett-cycling/dualR@v0.1.0
 
 # copy the app to the image
 COPY dualR.Rproj /srv/shiny-server/
