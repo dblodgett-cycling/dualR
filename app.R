@@ -5,18 +5,11 @@ library(shiny)
 library(shinyBS)
 library(dualR)
 
-PYTHON_DEPENDENCIES = c('sweat')
-
 source("utils.R")
 
 options(shiny.maxRequestSize=30*1024^2) 
 
-if(Sys.info()[['user']] == 'root'){
-  
-  # docker 
-  Sys.setenv(FITCSVTOOL = "/usr/local/bin/FitCSVTool.jar")
-  
-}
+Sys.setenv(FITCSVTOOL = "/usr/local/bin/FitCSVTool.jar")
 
 ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),

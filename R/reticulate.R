@@ -27,14 +27,19 @@ read_fit_file_sdk <- function(f, overwrite = TRUE) {
   
   fitcsvjar <- Sys.getenv("FITCSVTOOL")
 
-  system2("java", c("-jar", fitcsvjar, "--defn none", "--data record", f))
+  system2("java", c("-jar", fitcsvjar, "--defn none", "--data record", f), 
+          stdout = FALSE)
 
-  record <- clean_table(fread(out_f, fill = TRUE))
+  record <- clean_table(out_f)
   
   fit_time_origin <- as.POSIXct("1989-12-31 00:00:00", tz = "GMT")
   
   record$timestamp <- as.POSIXct(record$timestamp, tz = "GMT", 
                                  origin = fit_time_origin)
+  
+  record <- dplyr::rename(record, datetime = timestamp)
+  
+  record
 }
 
 #' Get Fit Metadata
@@ -72,13 +77,53 @@ get_fit_meta_sdk <- function(f) {
   
   fitcsvjar <- Sys.getenv("FITCSVTOOL")
   
-  system2("java", c("-jar", fitcsvjar, "--defn none", "--data file_id", f))
+  system2("java", c("-jar", fitcsvjar, "-e --data file_id", f), 
+          stdout = FALSE)
   
-  clean_table(fread(out_f, fill = TRUE))
+  clean_table(out_f_2)
   
 }
 
+get_row <- function(row) {
+  ns <- row[seq(4, length(row), 3)]
+  
+  filt <- as.logical(ns != "" & !is.na(ns))
+  
+  ns <- ns[filt]
+  
+  vl <- row[seq(5, length(row), 3)]
+  
+  suppressWarnings(vl[!is.na(vl) & (as.numeric(vl) == 1 | vl == "")] <- NA)
+  
+  if(all(is.na(vl))) return(NULL)
+  
+  vl <- as.list(tolower(vl[filt]))
+  
+  names(vl) <- ns
+  
+  data.frame(vl)
+}
+
 clean_table <- function(x) {
+  x <- try(fread(x, fill = TRUE, integer64 = "character"), silent = TRUE)
+  
+  if(inherits(x, "try-error")) return(data.frame())
+  
+  if(names(x)[1] == "Type") {
+    x <- dplyr::bind_rows(apply(x, 1, get_row))
+    
+    if("serial_number" %in% names(x)) {
+      x <- dplyr::filter(x, !is.na(.data$serial_number))
+    }
+    
+    if("time_created" %in% names(x)) {
+      fit_time_origin <- as.POSIXct("1989-12-31 00:00:00", tz = "GMT")
+      
+      x$time_created <- as.POSIXct(as.integer(x$time_created), tz = "GMT", 
+                                   origin = fit_time_origin)
+    }
+  }
+  
   names(x) <- gsub("\\[.*\\]", "", gsub(".*\\.", "", names(x)))
   
   if(any(!(fltr <- !grepl("^V", names(x))))) {
@@ -99,7 +144,7 @@ get_device_meta <- function(f) {
     return(get_device_meta_sdk(f))
   }
   
-  fitparse <- reticulate::import("fitparse")
+  fitparse <- reticulate::import("fitparse", convert = FALSE)
   
   fitfile <- fitparse$FitFile(f)
   
@@ -112,7 +157,8 @@ get_device_meta <- function(f) {
     out[[i]] <- list()
     
     for(r in reticulate::iterate(record)) {
-      out[[i]][r$name] = list(as.character(r$value))
+      out[[i]][reticulate::py_to_r(r$name)] = 
+        list(as.character(r$value))
     }
     
     out[[i]][lengths(out[[i]]) == 0] <- ""
@@ -135,9 +181,10 @@ get_device_meta_sdk <- function(f) {
   
   fitcsvjar <- Sys.getenv("FITCSVTOOL")
   
-  system2("java", c("-jar", fitcsvjar, "--defn none", "--data device_info", f))
+  system2("java", c("-jar", fitcsvjar, "-e", "--defn none --data device_info", f), 
+          stdout = FALSE)
   
-  clean_device_info(clean_table(fread(out_f, fill = TRUE)))
+  clean_device_info(clean_table(out_f_2))
   
 }
 

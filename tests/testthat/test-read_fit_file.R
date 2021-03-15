@@ -1,21 +1,21 @@
 test_that("read fit", {
-  f <- read_fit_file(system.file("fit/fit1.fit", package = "dualR"))
+  f <- read_fit_file(file.path(tmp_fit_dir, "fit/fit1.fit"))
   
   expect_equal(nrow(f), 6668)  
 })
 
 test_that("get meta", {
-  meta <- get_fit_meta(system.file("fit/fit1.fit", package = "dualR"))
+  meta <- get_fit_meta(file.path(tmp_fit_dir, "fit/fit1.fit"))
   
-  expect_equal(names(meta), c("manufacturer", "product", 
-                              "serial_number", "time_created", 
-                              "type"))
+  expect_true(all(c("manufacturer", "product", 
+                    "serial_number", "time_created", 
+                    "type") %in% names(meta)))
   
-  meta <- get_fit_meta(system.file("fit/fit2.fit", package = "dualR"))
+  meta <- get_fit_meta(file.path(tmp_fit_dir, "fit/fit2.fit"))
   
-  expect_equal(names(meta), c("manufacturer", "product", 
-                              "serial_number", "time_created", 
-                              "type"))
+  expect_true(all(c("manufacturer", "product", 
+                    "time_created", 
+                    "type") %in% names(meta)))
   
   expect_equal(meta$serial_number, NULL)
   
@@ -23,11 +23,11 @@ test_that("get meta", {
 })
 
 test_that("get devices", {
-  meta <- get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
+  meta <- get_device_meta(file.path(tmp_fit_dir, "fit/zwift/wahoo_h3.fit"))
   
   expect_equal(nrow(meta), 5)
   
-  meta <- get_device_meta(system.file("fit/rgt/rgt_h3.fit", package = "dualR"))
+  meta <- get_device_meta(file.path(tmp_fit_dir, "fit/rgt/rgt_h3.fit"))
   
   expect_true(nrow(meta) == 0)
 })

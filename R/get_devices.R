@@ -13,7 +13,7 @@ get_devices_summary <- function(devices) {
     out$fit$source <- "rgt"
   } else if(any(grepl("wahoo", devices$manufacturer)) & "ant_device_number" %in% names(devices)) {
     head <- distinct(filter(devices, .data$manufacturer == "wahoo_fitness" & is.na(.data$ant_device_number)))
-    power <- distinct(filter(devices, .data$product_name == "Power"))
+    power <- distinct(filter(devices, grepl("^power$", .data$product_name, ignore.case = TRUE)))
     
     out$fit$source <- head$manufacturer
     out$fit$serial <- head$serial_number
@@ -36,8 +36,10 @@ get_devices_summary <- function(devices) {
                                         .data$antplus_device_type == "bike_power"))
       
     } else {
+      devices$device_type <- as.numeric(devices$device_type)
       
-      head <- distinct(filter(devices, .data$manufacturer == "garmin" & .data$device_type == 1))
+      head <- distinct(filter(devices, .data$manufacturer == "garmin" & 
+                                (.data$device_type == 1 | is.na(.data$device_type))))
       power <- distinct(filter(devices, .data$device_type == 11))
       
     }
