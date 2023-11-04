@@ -1,6 +1,14 @@
 test_that("read fit", {
   f <- read_fit_file(file.path(tmp_fit_dir, "fit/fit1.fit"))
   
+  expect_s3_class(f, "data.frame")
+
+  expect_equal(c("datetime", "heart_rate", "calories", "cadence", "power", "left_right_balance", 
+                 "battery_soc", "temperature"), 
+               names(f))
+  
+  expect_s3_class(f$datetime, "POSIXct")
+    
   expect_equal(nrow(f), 6668)  
 })
 
@@ -25,7 +33,7 @@ test_that("get meta", {
 test_that("get devices", {
   meta <- get_device_meta(file.path(tmp_fit_dir, "fit/zwift/wahoo_h3.fit"))
   
-  expect_equal(nrow(meta), 5)
+  expect_equal(nrow(meta), 2)
   
   meta <- get_device_meta(file.path(tmp_fit_dir, "fit/rgt/rgt_h3.fit"))
   

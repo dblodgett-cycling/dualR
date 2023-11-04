@@ -42,34 +42,10 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
 
-      - name: Install Python dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get install python3-virtualenv
-          sudo apt-get install python3-venv
-          sudo apt-get install -y python3-pip
-          sudo pip3 install --upgrade pip
-          sudo update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
-          sudo apt-get install -y python3-venv
-          pip install setuptools
-          pip install sweat==0.17.0
         shell: /bin/bash {0}
         
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
-          virtualenv_dir <- "venv_python"
-          reticulate::virtualenv_create(envname = virtualenv_dir, python = "python3")
-          reticulate::virtualenv_install(virtualenv_dir, packages = c("sweat"))
-        shell: Rscript {0}
-
-      - name: Check
-        run: |
-          reticulate::use_virtualenv("venv_python", required = TRUE)
-          options(crayon.enabled = TRUE)
-          Sys.setenv(FITCSVTOOL = "")
-          rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}

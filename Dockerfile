@@ -2,7 +2,7 @@
 FROM rocker/shiny-verse:4.0.1
 
 # install R packages required
-RUN install2.r dygraphs xts reticulate RcppRoll rmarkdown shinyBS kableExtra
+RUN install2.r dygraphs xts RcppRoll rmarkdown shinyBS kableExtra
 
 # install java packages
 RUN apt-get update && \

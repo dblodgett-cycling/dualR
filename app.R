@@ -236,18 +236,40 @@ server <- function(input, output, session) {
   outputOptions(output, 'show', suspendWhenHidden = FALSE)
   
   output$run_report <- downloadHandler(
-    filename = "dualReport.html",
+    filename = "dualReport.zip",
     content = function(file) {
+      
+      html_file <- file.path(dirname(file), "html_report.html")
+      json_file <- file.path(dirname(file), "json_dump.json")
+      
+      unlink(html_file)
+      unlink(json_file)
       
       params <- list(fit = app_env$rmd_params$fit,
                      conf = app_env$rmd_params$conf,
                      maxes = app_env$rmd_params$maxes,
                      dat = app_env$rmd_params$d)
       
-      rmarkdown::render("compare.Rmd", output_file = file,
+      rmarkdown::render("compare.Rmd", output_file = html_file,
                         params = params,
                         envir = new.env(parent = globalenv())
       )
+      
+      params$dat <- lapply(params$dat, function(x) {
+        x <- as.data.frame(x)
+        cbind(datetime = rownames(x), x)
+      })
+      
+      jsonlite::write_json(params, json_file, pretty = TRUE)
+      
+      wd <- getwd()
+      setwd(dirname(file))
+      
+      zip::zip(basename(file), c(basename(html_file), basename(json_file)))
+      
+      setwd(wd)
+      
+      file
     }
   )
   
