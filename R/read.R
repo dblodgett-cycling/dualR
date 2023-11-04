@@ -4,38 +4,24 @@ datatable.aware = TRUE
 #' Read Fit File
 #' @param f path to fit file
 #' @export
+#' @importFrom FITfileR readFitFile records
+#' @importFrom data.table rbindlist setnames
 #' @examples 
 #' read_fit_file(system.file("fit/fit1.fit", package = "dualR"))
 read_fit_file <- function(f) {
   
-  if(Sys.getenv("FITCSVTOOL") != "") {
-    return(read_fit_file_sdk(f))
-  }
+  d <- readFitFile(f) |>
+    records()
   
-}
-
-#' @importFrom data.table fread
-read_fit_file_sdk <- function(f, overwrite = TRUE) {
-  out_f <- gsub("\\.fit", "_data.csv", f)
-  out_f_2 <- gsub("\\.fit", ".csv", f)
+  if(!inherits(d, "data.frame"))
+    d <- rbindlist(d, use.names = TRUE, fill = TRUE)
   
-  on.exit(unlink(c(out_f, out_f_2)))
+  d <- setnames(d, old = "timestamp", new = "datetime")
   
-  fitcsvjar <- Sys.getenv("FITCSVTOOL")
-
-  system2("java", c("-jar", fitcsvjar, "--defn none", "--data record", f), 
-          stdout = FALSE)
-
-  record <- clean_table(out_f)
+  d <- d[order(d$datetime),]
   
-  fit_time_origin <- as.POSIXct("1989-12-31 00:00:00", tz = "GMT")
+  return(d)
   
-  record$timestamp <- as.POSIXct(record$timestamp, tz = "GMT", 
-                                 origin = fit_time_origin)
-  
-  record <- dplyr::rename(record, datetime = timestamp)
-  
-  record
 }
 
 #' Get Fit Metadata
