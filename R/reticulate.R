@@ -12,10 +12,6 @@ read_fit_file <- function(f) {
     return(read_fit_file_sdk(f))
   }
   
-  sweat <- reticulate::import("sweat", convert = FALSE)
-  d <- sweat$read_fit(f)
-  d <- d$reset_index()
-  reticulate::py_to_r(d)
 }
 
 #' @importFrom data.table fread
@@ -52,20 +48,6 @@ get_fit_meta <- function(f) {
   if(Sys.getenv("FITCSVTOOL") != "") {
     return(get_fit_meta_sdk(f))
   }
-  
-  fitparse <- reticulate::import("fitparse")
-  
-  fitfile <- fitparse$FitFile(f)
-  
-  out = list()
-  
-  for(record in reticulate::iterate(fitfile$get_messages("file_id"))) {
-    for(r in reticulate::iterate(record)) {
-      out[r$name] = list(r$value)
-    }
-  }
-  
-  out
   
 }
 
@@ -143,33 +125,6 @@ get_device_meta <- function(f) {
   if(Sys.getenv("FITCSVTOOL") != "") {
     return(get_device_meta_sdk(f))
   }
-  
-  fitparse <- reticulate::import("fitparse", convert = FALSE)
-  
-  fitfile <- fitparse$FitFile(f)
-  
-  out = list()
-  
-  i <- 1
-  
-  for(record in reticulate::iterate(fitfile$get_messages("device_info"))) {
-  
-    out[[i]] <- list()
-    
-    for(r in reticulate::iterate(record)) {
-      out[[i]][reticulate::py_to_r(r$name)] = 
-        list(as.character(r$value))
-    }
-    
-    out[[i]][lengths(out[[i]]) == 0] <- ""
-    
-    out[[i]] <- data.frame(out[[i]])
-    
-    i <- i + 1
-    
-  }
-  
-  clean_device_info(dplyr::bind_rows(out))
   
 }
 
