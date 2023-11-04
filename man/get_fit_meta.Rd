@@ -7,11 +7,13 @@
 get_fit_meta(f)
 }
 \arguments{
-\item{f}{path to fit file}
+\item{f}{path to fit file of FitFile object}
 }
 \description{
 Get Fit Metadata
 }
 \examples{
-get_fit_meta(system.file("fit/fit2.fit", package = "dualR"))
+f <- readFitFile(system.file("fit/fit1.fit", package = "dualR"))
+get_fit_meta(f)
+
 }

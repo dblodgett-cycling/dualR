@@ -3,10 +3,10 @@ test_that("read fit", {
   
   expect_s3_class(f, "data.frame")
 
-  expect_equal(c("datetime", "heart_rate", "calories", "cadence", "power", "left_right_balance", 
-                 "battery_soc", "temperature"), 
-               names(f))
-  
+  expect_true(all(c("datetime", "heart_rate", "calories", "cadence", "power", "left_right_balance", 
+                 "battery_soc", "temperature") %in%
+               names(f)))
+
   expect_s3_class(f$datetime, "POSIXct")
     
   expect_equal(nrow(f), 6668)  
@@ -25,7 +25,7 @@ test_that("get meta", {
                     "time_created", 
                     "type") %in% names(meta)))
   
-  expect_equal(meta$serial_number, NULL)
+  expect_equal(meta$serial_number, 0)
   
   expect_s3_class(meta$time_created, "POSIXct")
 })

@@ -25,30 +25,20 @@ read_fit_file <- function(f) {
 }
 
 #' Get Fit Metadata
-#' @param f path to fit file
+#' @param f path to fit file of FitFile object
 #' @export
+#' @importFrom FITfileR getMessagesByType
 #' @examples
-#' get_fit_meta(system.file("fit/fit2.fit", package = "dualR"))
+#' f <- readFitFile(system.file("fit/fit1.fit", package = "dualR"))
+#' get_fit_meta(f)
+#' 
 get_fit_meta <- function(f) {
   
-  if(Sys.getenv("FITCSVTOOL") != "") {
-    return(get_fit_meta_sdk(f))
-  }
+  if(!inherits(f, "FitFile"))
+    f <- readFitFile(f)
   
-}
-
-get_fit_meta_sdk <- function(f) {
-  out_f <- gsub("\\.fit", "_data.csv", f)
-  out_f_2 <- gsub("\\.fit", ".csv", f)
-  
-  on.exit(unlink(c(out_f, out_f_2)))
-  
-  fitcsvjar <- Sys.getenv("FITCSVTOOL")
-  
-  system2("java", c("-jar", fitcsvjar, "-e --data file_id", f), 
-          stdout = FALSE)
-  
-  clean_table(out_f_2)
+  return(getMessagesByType(f, "file_id") |>
+           as.data.frame())
   
 }
 
@@ -72,6 +62,7 @@ get_row <- function(row) {
   data.frame(vl)
 }
 
+#' @importFrom data.table fread
 clean_table <- function(x) {
   x <- try(fread(x, fill = TRUE, integer64 = "character"), silent = TRUE)
   
