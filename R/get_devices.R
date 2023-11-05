@@ -10,7 +10,7 @@ get_devices_summary <- function(devices) {
               power = list(source = NULL, serial = NULL, version = NULL))
   
   if(nrow(devices) == 0) {
-    out$fit$source <- "rgt"
+    out$fit$source <- "unknown"
   } else if(any(grepl("wahoo", devices$manufacturer)) & "ant_device_number" %in% names(devices)) {
     head <- distinct(filter(devices, .data$manufacturer == "wahoo_fitness" & is.na(.data$ant_device_number)))
     power <- distinct(filter(devices, grepl("^power$", .data$product_name, ignore.case = TRUE)))

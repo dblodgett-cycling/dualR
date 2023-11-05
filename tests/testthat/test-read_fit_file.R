@@ -33,7 +33,7 @@ test_that("get meta", {
 test_that("get devices", {
   meta <- get_device_meta(file.path(tmp_fit_dir, "fit/zwift/wahoo_h3.fit"))
   
-  expect_equal(nrow(meta), 2)
+  expect_equal(nrow(meta), 5)
   
   meta <- get_device_meta(file.path(tmp_fit_dir, "fit/rgt/rgt_h3.fit"))
   

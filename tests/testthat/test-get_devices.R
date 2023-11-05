@@ -18,7 +18,7 @@ test_that("garmin", {
   
   expect_equal(summary$fit$source, "garmin")
   expect_equal(summary$power$source, "tacx")
-  expect_equal(summary$power$serial, "84628139")
+  expect_equal(summary$power$serial, 84628139)
 })
 
 test_that("garmin with saris FE", {
@@ -60,7 +60,7 @@ test_that("rgt", {
   devices <- get_device_meta(file.path(tmp_fit_dir, "fit/fit2.fit"))
   
   expect_equal(get_devices_summary(devices), 
-               list(fit = list(source = "rgt", serial = NULL, version = NULL), 
+               list(fit = list(source = "unknown", serial = NULL, version = NULL), 
                     power = list(source = NULL, serial = NULL, version = NULL)))
 })
 
@@ -69,7 +69,7 @@ test_that("zwift", {
   summary <- get_devices_summary(file.path(tmp_fit_dir, "fit/zwift/zwift_p2m.fit"))
   
   expect_equal(summary$fit$source, "zwift")
-  expect_equal(summary$fit$serial, 	"3825981698")
-  expect_equal(summary$fit$version, "5.62")
+  expect_equal(summary$fit$serial, 	3825981698)
+  expect_equal(summary$fit$version, 5.62)
   
 })

@@ -64,10 +64,12 @@ get_row <- function(row) {
 
 #' @importFrom data.table fread
 clean_table <- function(x) {
-  x <- try(fread(x, fill = TRUE, integer64 = "character"), silent = TRUE)
-  
-  if(inherits(x, "try-error")) return(data.frame())
-  
+  if(inherits(x, "character")) {
+    
+    x <- try(fread(x, fill = TRUE, integer64 = "character"), silent = TRUE)
+    
+    if(inherits(x, "try-error")) return(data.frame())
+  }
   if(names(x)[1] == "Type") {
     x <- dplyr::bind_rows(apply(x, 1, get_row))
     
@@ -99,24 +101,37 @@ clean_table <- function(x) {
 #' get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
 get_device_meta <- function(f) {
   
-  if(Sys.getenv("FITCSVTOOL") != "") {
-    return(get_device_meta_sdk(f))
+  if(!inherits(f, "FitFile"))
+    d <- readFitFile(f)
+  
+  d <- try(getMessagesByType(d, "device_info"), silent = TRUE)
+  
+  if(inherits(d, "try-error")) return(data.frame())
+  
+  if(!inherits(d, "data.frame")) {
+    
+    types <- lapply(d, function(x) sapply(x, class))
+    types <- dplyr::bind_rows(types)
+    types <- sapply(names(types), function(x) {
+      x <- types[[x]]
+      x <- x[!is.na(x)]
+      if(any(x == "POSIXct")) return("POSIXct")
+      if(any(x == "character")) return("character")
+      if(any(x == "integer")) return("integer")
+      "numeric"
+    })
+    
+    d <- lapply(d, function(x) {
+      for(y in names(x)) {
+        x[[y]] <- methods::as(x[[y]], types[names(types) == y])
+      }
+      x
+    })
+    
+    d <- dplyr::bind_rows(d)
   }
   
-}
-
-get_device_meta_sdk <- function(f) {
-  out_f <- gsub("\\.fit", "_data.csv", f)
-  out_f_2 <- gsub("\\.fit", ".csv", f)
-  
-  on.exit(unlink(c(out_f, out_f_2)))
-  
-  fitcsvjar <- Sys.getenv("FITCSVTOOL")
-  
-  system2("java", c("-jar", fitcsvjar, "-e", "--defn none --data device_info", f), 
-          stdout = FALSE)
-  
-  clean_device_info(clean_table(out_f_2))
+  return(clean_device_info(clean_table(d)))
   
 }
 
@@ -137,12 +152,18 @@ clean_device_info <- function(out) {
     
     unq[["id"]] <- seq_len(nrow(unq))
     
-    dplyr::select(unq, id_temp, id) %>%
+    out <- dplyr::select(unq, id_temp, id) %>%
       dplyr::right_join(out, by = "id_temp") %>%
       dplyr::select(-id_temp) %>%
       dplyr::group_by(.data$id)%>%
       dplyr::filter(.data$timestamp == min(.data$timestamp)) %>%
+      dplyr::filter(dplyr::row_number() == 1) |>
       dplyr::ungroup()
+    
+    out[sapply(1:nrow(out), function(x) {
+      o <- out[x, names(out)[!names(out) %in% c("id", "timestamp")]]
+        !all(is.na(o) | o == 0)
+      }),]
     
   } else {
     
