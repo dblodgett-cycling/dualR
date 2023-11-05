@@ -259,13 +259,13 @@ get_conf <- function(input) {
   
   if(input$demo) {
     
-    conf$f1$f <- "inst/fit/rgt/02_rgt_neo.fit"
+    conf$f1$f <- FITfileR::readFitFile("inst/fit/rgt/02_rgt_neo.fit")
     conf$f1$label <- "Neo from RGT"
     conf$f1$offset <- 0
-    conf$f2$f <- "inst/fit/rgt/02_garmin_quarqd4.fit"
+    conf$f2$f <- FITfileR::readFitFile("inst/fit/rgt/02_garmin_quarqd4.fit")
     conf$f2$label <- "QuarqD4 validation from Garmin"
     conf$f2$offset <- -80
-    conf$f1_2$f <- "inst/fit/rgt/02_wahoo_neo.fit"
+    conf$f1_2$f <- FITfileR::readFitFile("inst/fit/rgt/02_wahoo_neo.fit")
     conf$f1_2$label <- "Neo verification from Wahoo"
     conf$f1_2$offset <- 0
     
@@ -308,7 +308,7 @@ check_input <- function(f, label, offset, conf) {
       return()
     }
     
-    conf$f <- check_fit(f$datapath)
+    conf$f <- FITfileR::readFitFile(check_fit(f$datapath))
     
     conf$label <- label
     

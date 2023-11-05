@@ -10,17 +10,19 @@ datatable.aware = TRUE
 #' read_fit_file(system.file("fit/fit1.fit", package = "dualR"))
 read_fit_file <- function(f) {
   
-  d <- readFitFile(f) |>
-    records()
+  if(!inherits(f, "FitFile"))
+    f <- readFitFile(f)
   
-  if(!inherits(d, "data.frame"))
-    d <- rbindlist(d, use.names = TRUE, fill = TRUE)
+  f <- records(f)
   
-  d <- setnames(d, old = "timestamp", new = "datetime")
+  if(!inherits(f, "data.frame"))
+    f <- rbindlist(f, use.names = TRUE, fill = TRUE)
   
-  d <- d[order(d$datetime),]
+  f <- setnames(f, old = "timestamp", new = "datetime")
   
-  return(d)
+  f <- f[order(f$datetime),]
+  
+  return(f)
   
 }
 
