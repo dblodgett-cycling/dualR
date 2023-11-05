@@ -15,14 +15,17 @@ get_devices_summary <- function(devices) {
     head <- distinct(filter(devices, .data$manufacturer == "wahoo_fitness" & is.na(.data$ant_device_number)))
     power <- distinct(filter(devices, grepl("^power$", .data$product_name, ignore.case = TRUE)))
     
-    out$fit$source <- head$manufacturer
-    out$fit$serial <- head$serial_number
-    out$fit$version <- head$software_version
+    if(nrow(head) > 0) {
+      out$fit$source <- head$manufacturer
+      out$fit$serial <- head$serial_number
+      out$fit$version <- head$software_version
+    }
     
-    out$power$source <- power$manufacturer
-    out$power$serial <- ifelse(!is.na(power$serial_number), power$serial_number, power$ant_device_number)
-    
-    out$power$version <- power$software_version
+    if(nrow(power) > 0) {
+      out$power$source <- power$manufacturer
+      out$power$serial <- ifelse(!is.na(power$serial_number), power$serial_number, power$ant_device_number)
+      out$power$version <- power$software_version
+    }
     
   } else if(any(grepl("garmin", devices$manufacturer))) {
     if("source_type" %in% names(devices)) {
@@ -44,14 +47,18 @@ get_devices_summary <- function(devices) {
       
     }
     
+    if(nrow(head) > 0) {
+      out$fit$source <- head$manufacturer
+      out$fit$serial <- head$serial_number
+      out$fit$version <- head$software_version
+    }
     
-    out$fit$source <- head$manufacturer
-    out$fit$serial <- head$serial_number
-    out$fit$version <- head$software_version
+    if(nrow(power) > 0) {
+      out$power$source <- power$manufacturer
+      out$power$serial <- power$serial_number
+      out$power$version <- power$software_version
+    }
     
-    out$power$source <- power$manufacturer
-    out$power$serial <- power$serial_number
-    out$power$version <- power$software_version
   } else if(any(grepl("zwift", devices$manufacturer))) {
     out$fit$source <- devices$manufacturer
     out$fit$serial <- devices$serial_number
