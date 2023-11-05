@@ -1,7 +1,4 @@
 # Edit this name if desired when starting a new app
-VIRTUALENV_NAME = 'venv_python'
-
-Sys.setenv(FITCSVTOOL = "/usr/local/bin/FitCSVTool.jar")
 
 # ------------------------- Settings (Do not edit) -------------------------- #
 
