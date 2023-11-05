@@ -3,13 +3,12 @@ library(dplyr)
 library(xts)
 library(shiny)
 library(shinyBS)
+library(FITfileR)
 library(dualR)
 
 source("utils.R")
 
 options(shiny.maxRequestSize=30*1024^2) 
-
-Sys.setenv(FITCSVTOOL = "/usr/local/bin/FitCSVTool.jar")
 
 ui <- fluidPage(
   mainPanel(h1("Dual Power Comparison"),

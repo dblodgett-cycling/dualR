@@ -1,0 +1,13 @@
+name: dualR
+title: dualR
+username: dblodgett
+account: dblodgett
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10418926
+bundleId: 7890411
+url: https://dblodgett.shinyapps.io/dualR/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .github/workflows/R-CMD-check.yaml|.Rbuildignore|.Rprofile|DESCRIPTION|Dockerfile|LICENSE.md|NAMESPACE|README.md|shiny-server.conf|shiny.pem|sshd_config|tests/testthat/helpers.R|tests/testthat/test-get_devices.R|tests/testthat/test-get_maxes.R|tests/testthat/test-read_fit_file.R|tests/testthat.R|man
