@@ -3,7 +3,7 @@ test_that("wahoo", {
   
   summary <- get_devices_summary(devices)  
   
-  expect_equal(summary$fit$serial, "1057771008")
+  expect_equal(summary$fit$serial, 1057771008)
   
   expect_equal(summary$fit$source, "wahoo_fitness")
   
