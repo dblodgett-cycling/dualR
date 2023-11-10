@@ -211,10 +211,40 @@ get_powercurve_table <- function(maxes, conf) {
     kableExtra::kable_styling()
 }
 
+AntplusDeviceType <- c(
+  Antfs = 1,
+  BikePower = 11,
+  EnvironmentSensorLegacy = 12,
+  MultiSportSpeedDistance = 15,
+  Control = 16,
+  FitnessEquipment = 17,
+  BloodPressure = 18,
+  GeocacheNode = 19,
+  LightElectricVehicle = 20,
+  EnvSensor = 25,
+  Racquet = 26,
+  ControlHub = 27,
+  MuscleOxygen = 31,
+  BikeLightMain = 35,
+  BikeLightShared = 36,
+  BikeRadar = 40,
+  WeightScale = 119,
+  HeartRate = 120,
+  BikeSpeedCadence = 121,
+  BikeCadence = 122,
+  BikeSpeed = 123,
+  StrideSpeedDistance = 124)
+
+AntplusDeviceType <- data.frame(device_type_name = names(AntplusDeviceType), 
+                                device_type = as.numeric(AntplusDeviceType))
+
 get_devices_table <- function(devices) {
   if(nrow(devices) == 0) devices <- data.frame(manufacturer = "undeclared", 
                                                product = "undeclared", 
                                                serial_number = "undeclared")
+  
+  if("device_type" %in% names(devices))
+    devices <- left_join(devices, AntplusDeviceType, by = "device_type")
   
   names(devices) <- gsub("_", " ", names(devices))
   
