@@ -1,6 +1,6 @@
 Package: dualR
 Title: Dual Cycling Power Analysis for eRacing
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: 
     person(given = "David",
            family = "Blodgett",
