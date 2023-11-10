@@ -19,7 +19,8 @@ ui <- fluidPage(
             p(HTML(paste0("Three input files can be supplied: <strong>Primary, verification, and validation</strong>. ", 
                           "The expectation is that <strong>'primary'</strong> comes from a virtual cycling platform, ", 
                           "<strong>'verification'</strong> is a second recording of the same physical power source, ", 
-                          "and <strong>'validation'</strong> is a second physical power source."))),
+                          "and <strong>'validation'</strong> is a second physical power source. ",
+                          "For indieVelo fit files, only one file is required and the second power meter will be added."))),
             fixedRow(column(width = 5,
                             fileInput("f1", 
                                       label = "Primary", 
@@ -169,6 +170,11 @@ server <- function(input, output, session) {
       output$fit_2_ds <- function() get_device_summary_table(fit$f2$s)
       
       output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
+      
+      if(is.null(conf$f2$label)) {
+        conf$f1$label <- paste(conf$f1$label, "Primary")
+        conf$f2$label <- paste(conf$f1$label, "Power Meter")
+      }
     }
     
     tryCatch({
@@ -258,6 +264,10 @@ server <- function(input, output, session) {
         x <- as.data.frame(x)
         cbind(datetime = rownames(x), x)
       })
+      
+      params$conf$f1$f <- NULL
+      params$conf$f1_2$f <- NULL
+      params$conf$f2$f <- NULL
       
       jsonlite::write_json(params, json_file, pretty = TRUE)
       

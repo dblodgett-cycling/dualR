@@ -4,7 +4,7 @@
 \alias{get_device_meta}
 \title{Get Device Metadata}
 \usage{
-get_device_meta(f)
+get_device_meta(d)
 }
 \arguments{
 \item{f}{path to fit file}

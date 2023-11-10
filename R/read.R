@@ -101,10 +101,10 @@ clean_table <- function(x) {
 #' @export
 #' @examples 
 #' get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
-get_device_meta <- function(f) {
+get_device_meta <- function(d) {
   
-  if(!inherits(f, "FitFile"))
-    d <- readFitFile(f)
+  if(!inherits(d, "FitFile"))
+    d <- readFitFile(d)
   
   d <- try(getMessagesByType(d, "device_info"), silent = TRUE)
   

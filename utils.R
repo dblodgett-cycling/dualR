@@ -348,6 +348,15 @@ get_fit_data <- function(conf, trim) {
     f2_devices <- get_device_meta(conf$f2$f)
     
     f2_device_summary <- get_devices_summary(f2_devices)
+  } else if("Powermeter Power" %in% names(fit_1)) {
+    
+    fit_2 <- select(fit_1, datetime, power = `Powermeter Power`)
+    
+    f2_meta <- pretty_fm(get_fit_meta(conf$f1$f), paste(conf$f1$label, "Power Meter"))
+    
+    f2_devices <- get_device_meta(conf$f1$f)
+    
+    f2_device_summary <- get_devices_summary(f1_devices)
     
   } else {
     

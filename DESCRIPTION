@@ -9,7 +9,7 @@ Authors@R:
            comment = c(ORCID = "0000-0001-9489-1710"))
 Description: The vision for this work was originally curiosity and a need to generate dual power analyses with data that are not natively 1hz recording rate. The work has evolved and may be used/reused for a variety of applications in the future.
 Imports: RcppRoll, utils, dplyr, data.table
-Remotes: dblodgett-cycling/FITfileR
+Remotes: grimbough/FITfileR
 License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
