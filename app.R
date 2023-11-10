@@ -172,8 +172,9 @@ server <- function(input, output, session) {
       output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
       
       if(is.null(conf$f2$label)) {
-        conf$f1$label <- paste(conf$f1$label, "Primary")
-        conf$f2$label <- paste(conf$f1$label, "Power Meter")
+        lbl <- conf$f1$label
+        conf$f1$label <- paste(lbl, "Primary")
+        conf$f2$label <- paste(lbl, "Power Meter")
       }
     }
     

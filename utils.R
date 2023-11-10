@@ -332,7 +332,11 @@ get_fit_data <- function(conf, trim) {
   
   f1_devices <- get_device_meta(conf$f1$f)
   
-  f1_device_summary <- get_devices_summary(f1_devices)
+  if("Powermeter Power" %in% names(fit_1) & all(c(17, 11) %in% f1_devices$device_type))
+    iv_mode <- "primary"
+  
+  f1_device_summary <- get_devices_summary(f1_devices,
+                                           iv_mode = iv_mode)
   
   if(!is.null(conf$f2$label)) {
     
@@ -352,11 +356,12 @@ get_fit_data <- function(conf, trim) {
     
     fit_2 <- select(fit_1, datetime, power = `Powermeter Power`)
     
+    f1_meta <- pretty_fm(get_fit_meta(conf$f1$f), paste(conf$f1$label, "Primary"))
     f2_meta <- pretty_fm(get_fit_meta(conf$f1$f), paste(conf$f1$label, "Power Meter"))
     
     f2_devices <- get_device_meta(conf$f1$f)
     
-    f2_device_summary <- get_devices_summary(f1_devices)
+    f2_device_summary <- get_devices_summary(f1_devices, iv_mode = "secondary")
     
   } else {
     

@@ -4,10 +4,12 @@
 \alias{get_devices_summary}
 \title{get devices summary}
 \usage{
-get_devices_summary(devices)
+get_devices_summary(devices, iv_mode = "")
 }
 \arguments{
 \item{devices}{data.table of devices or path to fit file where devices can be retrieved.}
+
+\item{iv_mode}{character "primary" or "secondary" for trainer power or power meter.}
 }
 \description{
 given device table from a fit file, return a summary of connected devices.

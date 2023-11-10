@@ -28,9 +28,10 @@
 #' get devices summary
 #' @description given device table from a fit file, return a summary of connected devices.
 #' @param devices data.table of devices or path to fit file where devices can be retrieved.
+#' @param iv_mode character "primary" or "secondary" for trainer power or power meter.
 #' @importFrom dplyr filter distinct
 #' @export
-get_devices_summary <- function(devices) {
+get_devices_summary <- function(devices, iv_mode = "") {
   if(is.character(devices) | inherits(devices, "FitFile")) devices <- get_device_meta(devices)
   
   out <- list(fit = list(source = NULL, serial = NULL, version = NULL), 
@@ -90,6 +91,42 @@ get_devices_summary <- function(devices) {
     out$fit$source <- devices$manufacturer
     out$fit$serial <- devices$serial_number
     out$fit$version <- devices$software_version
+    
+  } else if(iv_mode == "primary") {
+    
+    head <- distinct(filter(devices, .data$device_type == 0))
+    
+    power <- distinct(filter(devices, .data$device_type == 17))
+    
+    if(nrow(head) > 0) {
+      out$fit$source <- head$manufacturer
+      out$fit$serial <- head$serial_number
+      out$fit$version <- head$software_version
+    }
+    
+    if(nrow(power) > 0) {
+      out$power$source <- power$manufacturer
+      out$power$serial <- power$serial_number
+      out$power$version <- power$software_version
+    }
+    
+  } else if(iv_mode == "secondary") {
+    
+    head <- distinct(filter(devices, .data$device_type == 0))
+    
+    power <- distinct(filter(devices, .data$device_type == 11))
+    
+    if(nrow(head) > 0) {
+      out$fit$source <- head$manufacturer
+      out$fit$serial <- head$serial_number
+      out$fit$version <- head$software_version
+    }
+    
+    if(nrow(power) > 0) {
+      out$power$source <- power$manufacturer
+      out$power$serial <- power$serial_number
+      out$power$version <- power$software_version
+    }
     
   } else if(any(grepl("development", devices$manufacturer))) {
     
