@@ -20,4 +20,6 @@ Thanks for considering contributing to the project. I'd be excited for this proj
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/dblodgett-cycling/dualR/workflows/R-CMD-check/badge.svg)](https://github.com/dblodgett-cycling/dualR/actions)
+[![R-CMD-check](https://github.com/dblodgett-cycling/dualR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dblodgett-cycling/dualR/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/dblodgett-cycling/dualR/branch/master/graph/badge.svg)](https://app.codecov.io/gh/dblodgett-cycling/dualR?branch=master)
 <!-- badges: end -->

@@ -8,3 +8,4 @@ compare.Rmd
 rsconnect
 utils.R
 ^\.github$
+^codecov\.yml$
