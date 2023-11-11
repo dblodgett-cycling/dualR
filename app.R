@@ -151,23 +151,25 @@ server <- function(input, output, session) {
     
     output$fit_1_ds <- function() get_device_summary_table(fit$f1$s)
     
-    if(!is.null(fit$f1_2$m)) {
-      output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
     
-      output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
-      
-      output$fit_1_2_ds <- function() get_device_summary_table(fit$f1_2$s)
-      
+    output$f1_2_meta <- renderUI(HTML(fit$f1_2$m))
+    
+    output$fit_1_2_devices <- function() get_devices_table(fit$f1_2$d)
+    
+    output$fit_1_2_ds <- function() get_device_summary_table(fit$f1_2$s)
+    
+    if(!is.null(fit$f1_2$m)) {      
       output$fit_1_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
     }
     
-    if(!is.null(fit$f2$m)) {
     
-      output$f2_meta <- renderUI(HTML(fit$f2$m))
+    output$f2_meta <- renderUI(HTML(fit$f2$m))
     
-      output$fit_2_devices <- function() get_devices_table(fit$f2$d)
+    output$fit_2_devices <- function() get_devices_table(fit$f2$d)
     
-      output$fit_2_ds <- function() get_device_summary_table(fit$f2$s)
+    output$fit_2_ds <- function() get_device_summary_table(fit$f2$s)
+
+    if(!is.null(fit$f2$m)) {     
       
       output$fit_2_device_heading <- renderUI(HTML("<h4>Connected Device Metadata</h4>"))
       

@@ -239,6 +239,8 @@ AntplusDeviceType <- data.frame(device_type_name = names(AntplusDeviceType),
                                 device_type = as.numeric(AntplusDeviceType))
 
 get_devices_table <- function(devices) {
+  if(is.null(devices)) return()
+  
   if(nrow(devices) == 0) devices <- data.frame(manufacturer = "undeclared", 
                                                product = "undeclared", 
                                                serial_number = "undeclared")
@@ -253,6 +255,8 @@ get_devices_table <- function(devices) {
 }
 
 get_device_summary_table <- function(s) {
+  
+  if(is.null(s)) return()
   
   s <- lapply(s, function(x) {
     x[sapply(x, is.null)] <- "unknown"
