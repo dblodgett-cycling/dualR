@@ -7,7 +7,7 @@
 get_device_meta(d)
 }
 \arguments{
-\item{f}{path to fit file}
+\item{d}{path to fit file or object of class FitFile}
 }
 \description{
 Get Device Metadata

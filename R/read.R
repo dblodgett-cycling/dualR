@@ -31,7 +31,7 @@ read_fit_file <- function(f) {
 #' @export
 #' @importFrom FITfileR getMessagesByType
 #' @examples
-#' f <- readFitFile(system.file("fit/fit1.fit", package = "dualR"))
+#' f <- FITfileR::readFitFile(system.file("fit/fit1.fit", package = "dualR"))
 #' get_fit_meta(f)
 #' 
 get_fit_meta <- function(f) {
@@ -97,7 +97,7 @@ clean_table <- function(x) {
 }
 
 #' Get Device Metadata
-#' @param f path to fit file
+#' @param d path to fit file or object of class FitFile
 #' @export
 #' @examples 
 #' get_device_meta(system.file("fit/zwift/wahoo_h3.fit", package = "dualR"))
@@ -147,14 +147,14 @@ clean_device_info <- function(out) {
   
   if(nrow(out) > 0) {
     
-    out[["id_temp"]] <- apply(dplyr::select(out, -timestamp), 1, 
+    out[["id_temp"]] <- apply(dplyr::select(out, -"timestamp"), 1, 
                               function(x) do.call(paste, as.list(x)))
     
-    unq <- dplyr::distinct(dplyr::select(out, -timestamp))
+    unq <- dplyr::distinct(dplyr::select(out, -"timestamp"))
     
     unq[["id"]] <- seq_len(nrow(unq))
     
-    out <- dplyr::select(unq, id_temp, id) %>%
+    out <- dplyr::select(unq, dplyr::all_of(c("id_temp", "id"))) %>%
       dplyr::right_join(out, by = "id_temp") %>%
       dplyr::select(-id_temp) %>%
       dplyr::group_by(.data$id)%>%

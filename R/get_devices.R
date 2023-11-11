@@ -130,7 +130,7 @@ get_devices_summary <- function(devices, iv_mode = "") {
     
   } else if(any(grepl("development", devices$manufacturer))) {
     
-    head <- distinct(filter(devices, manufacturer == "development"))
+    head <- distinct(filter(devices, .data$manufacturer == "development"))
     
     power <- distinct(filter(devices, .data$device_type == 11))
     

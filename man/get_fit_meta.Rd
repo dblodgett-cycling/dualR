@@ -13,7 +13,7 @@ get_fit_meta(f)
 Get Fit Metadata
 }
 \examples{
-f <- readFitFile(system.file("fit/fit1.fit", package = "dualR"))
+f <- FITfileR::readFitFile(system.file("fit/fit1.fit", package = "dualR"))
 get_fit_meta(f)
 
 }
