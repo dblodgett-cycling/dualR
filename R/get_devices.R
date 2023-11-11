@@ -55,16 +55,20 @@ get_devices_summary <- function(devices, iv_mode = "") {
       out$power$version <- power$software_version
     }
     
-  } else if(any(grepl("garmin", devices$manufacturer))) {
+  } else if(any(c(1, 255) %in% devices$device_type[grepl("garmin", devices$manufacturer)])) {
     if("source_type" %in% names(devices)) {
       head <- distinct(filter(devices, .data$manufacturer == "garmin" & .data$source_type == "local"))
       
       if(nrow(head) > 1) {
-        head <- filter(head, .data$serial_number != "")
+        head <- filter(head, .data$serial_number != 0)
       }
       
-      power <- distinct(filter(devices, .data$antplus_device_type == "fitness_equipment" | 
-                                        .data$antplus_device_type == "bike_power"))
+      if(nrow(head) == 0) {
+        head <- filter(devices, .data$manufacturer == "garmin" & device_type == 1)
+      }
+      
+      power <- distinct(filter(devices, .data$device_type == 17 | 
+                                        .data$device_type == 11))
       
     } else {
       devices$device_type <- as.numeric(devices$device_type)

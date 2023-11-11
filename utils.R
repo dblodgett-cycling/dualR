@@ -366,7 +366,10 @@ get_fit_data <- function(conf, trim) {
   
   f1_devices <- get_device_meta(conf$f1$f)
   
-  if("Powermeter Power" %in% names(fit_1) & all(c(17, 11) %in% f1_devices$device_type))
+  iv_mode <- ""
+  
+  if("Powermeter Power" %in% names(fit_1) & all(c(17, 11) %in% f1_devices$device_type) & 
+     is.null(conf$f2))
     iv_mode <- "primary"
   
   f1_device_summary <- get_devices_summary(f1_devices,

@@ -11,7 +11,7 @@ source("utils.R")
 options(shiny.maxRequestSize=30*1024^2) 
 
 ui <- fluidPage(
-  mainPanel(h1("Dual Power Comparison"),
+  mainPanel(h1(paste0("Dual Power Comparison: dualR v", packageVersion("dualR"))),
             br(),
             p("This application accepts one or two (overlapping) fit files and creates a comparison report."),
             p("dualR is being provided as a service to the community. It is free and open source."),
