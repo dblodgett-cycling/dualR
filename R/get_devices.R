@@ -64,7 +64,7 @@ get_devices_summary <- function(devices, iv_mode = "") {
       }
       
       if(nrow(head) == 0) {
-        head <- filter(devices, .data$manufacturer == "garmin" & device_type == 1)
+        head <- filter(devices, .data$manufacturer == "garmin" & .data$device_type == 1)
       }
       
       power <- distinct(filter(devices, .data$device_type == 17 | 

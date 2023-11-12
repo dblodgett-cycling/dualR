@@ -3,6 +3,7 @@
 #' get summary of kj generated from a power time series
 #' @inheritParams get_maxes
 #' @param bins numeric sequence defining bin edges
+#' @param labels length(bins) - 1 length labels for output
 #' @return data.frame with bin (factor) and work (numeric) columns
 #' @importFrom dplyr group_by summarise
 #' @export

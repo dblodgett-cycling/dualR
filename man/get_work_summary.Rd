@@ -17,6 +17,8 @@ get_work_summary(
 \item{wthn}{second data.frame that overlaps the first.}
 
 \item{bins}{numeric sequence defining bin edges}
+
+\item{labels}{length(bins) - 1 length labels for output}
 }
 \value{
 data.frame with bin (factor) and work (numeric) columns

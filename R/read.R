@@ -156,7 +156,7 @@ clean_device_info <- function(out) {
     
     out <- dplyr::select(unq, dplyr::all_of(c("id_temp", "id"))) %>%
       dplyr::right_join(out, by = "id_temp") %>%
-      dplyr::select(-id_temp) %>%
+      dplyr::select(-"id_temp") %>%
       dplyr::group_by(.data$id)%>%
       dplyr::filter(.data$timestamp == min(.data$timestamp)) %>%
       dplyr::filter(dplyr::row_number() == 1) |>
