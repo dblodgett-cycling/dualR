@@ -9,11 +9,7 @@
 #'           read_fit_file(system.file("fit/fit2.fit", package = "dualR")))
 get_maxes <- function(fit, wthn = NULL) {
 
-  if(!is.null(wthn)) {
-    fit <- get_overlapping(fit, wthn)
-  }
-
-  fit <- to_1hz(fit, "power")
+  fit <- prep_fit(fit, wthn)
 
   l <- utils::tail(fit$datetime, n = 1) - fit$datetime[1]
 
@@ -48,7 +44,7 @@ xPower <- function(fit_1hz) {
 
 to_1hz <- function(fit, col = "power") {
   v <- data.frame(datetime = seq(fit$datetime[1], utils::tail(fit$datetime, n = 1), by = "1 sec"))
-  v[[col]] <- stats::approx(fit$datetime, fit[[col]], v$datetime, "linear")$y
+  v[[col]] <- stats::approx(fit$datetime, fit[[col]], v$datetime, "linear", ties = "ordered")$y
   v
 }
 
@@ -66,4 +62,15 @@ get_overlapping <- function(fit, wthn) {
   if(nrow(fit) == 0) stop("provided within filter records don't overlap.")
  
   fit
+}
+
+#' prepare fit files for comparison
+#' @inheritParams get_maxes
+#' @export
+prep_fit <- function(fit, wthn = NULL) {
+  if(!is.null(wthn)) {
+    fit <- get_overlapping(fit, wthn)
+  }
+  
+  to_1hz(fit, "power")
 }
